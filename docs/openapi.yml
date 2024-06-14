@@ -20,6 +20,10 @@ paths:
       responses:
         201:
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostEventResponse"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -36,33 +40,21 @@ paths:
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
-    get:
+    post:
+      description: 都合のいい日程候補を提出
       tags:
         - event
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetEventParticipantsResponse"
-  /traq/groups:
-    post:
-      description: create a new traQ group
-      tags:
-        - traq
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PostTraQGroupRequest"
+              $ref: "#/components/schemas/PostEventParticipantsRequest"
       responses:
         201:
           description: Created
-  /traq/groups/{groupName}:
-    parameters:
-      - $ref: "#/components/parameters/groupName"
+  /traq/groups:
     get:
+      description: get all traQ groups
       tags:
         - traq
       responses:
@@ -71,19 +63,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetTraQGroupResponse"
-    put:
-      description: 指定した request body で group の内容を置き換える
+                $ref: "#/components/schemas/GetTraQGroupsResponse"
+  /traq/users:
+    get:
+      description: get all traQ users
       tags:
         - traq
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PutTraQGroupRequest"
       responses:
-        204:
+        200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTraQUsersResponse"
       
 components:
   schemas:
@@ -92,16 +84,36 @@ components:
       properties:
         title:
           type: string
-        host_id:
-          type: string
-          description: 主催者traQ ID
         description:
           type: string
-        date_options:
+        dateOptions:
+          type: array
+          items:
+            type: object
+            properties:
+              start:
+                type: string
+                format: date-time
+              end:
+                type: string
+                format: date-time
+            required:
+              - start
+              - end
+        targets:
           type: array
           items:
             type: string
-            format: date
+            description: traQ ID
+      required:
+        - title
+        - dateOptions
+    PostEventResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
     GetEventResponse:
       type: object
       properties:
@@ -112,24 +124,57 @@ components:
           type: string
         description:
           type: string
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              userID:
+                type: string
+                description: traQID
+              dateOptionIDs:
+                type: array
+                items:
+                  type: string
+                  format: uuid
         status:
           type: string
-          format: uuid
           description: 日時が決定済みか
         date:
-          type: string
-          format: date
+          type: object
+          properties:
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+          required:
+            - start
+            - end
+        dateOptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/dateOption"
       required:
         - event_id
         - title
         - description
         - status
+    PostEventParticipantsRequest:
+      type: object
+      properties:
+        dateOptions:
+          type: array
+          items:
+            type: string
+            format: uuid
+            description: 日時候補のID
     GetEventParticipantsResponse:
       type: array
       items:
-        type: string
-        description: 参加者traQ ID
-    PostTraQGroupRequest:
+        $ref: "#/components/schemas/traQUser"
+    GetTraQGroupsResponse:
       type: object
       properties:
         name:
@@ -137,28 +182,37 @@ components:
         members:
           type: array
           items:
-            type: string
-            description: member traQ ID
-      required:
-        - name
-    GetTraQGroupResponse:
+            $ref: "#/components/schemas/traQUser"
+    GetTraQUsersResponse:
       type: array
       items:
-        type: string
-        description: member traQ ID
-    PutTraQGroupRequest:
+        $ref: "#/components/schemas/traQUser"
+    dateOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - id
+        - start
+        - end
+    traQUser:
       type: object
       properties:
         name:
           type: string
-        members:
-          type: array
-          items:
-            type: string
-            description: member traQ ID
+        displayName:
+          type: string
       required:
         - name
-        - members
+        - displayName
 
   parameters:
     eventID:
