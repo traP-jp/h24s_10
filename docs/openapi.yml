@@ -76,7 +76,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PostEventParticipantsRequest"
+              $ref: "#/components/schemas/PostEventApplicantsRequest"
       responses:
         201:
           description: Created
@@ -186,10 +186,10 @@ components:
         - title
         - description
         - status
-    PostEventParticipantsRequest:
+    PostEventApplicantsRequest:
       type: object
       properties:
-        dateOptions:
+        dateOptionIDs:
           type: array
           items:
             type: string
@@ -198,7 +198,8 @@ components:
     GetEventParticipantsResponse:
       type: array
       items:
-        $ref: "#/components/schemas/traQUser"
+        type: string
+        description: traQ user ID
     GetEventTargetsResponse:
       type: array
       items:
