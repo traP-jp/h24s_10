@@ -1,5 +1,4 @@
--- -- +goose Up
-
+-- +goose Up
 CREATE TABLE `events` (
     `id` VARCHAR(36) NOT NULL,
     `title` VARCHAR(255) NOT NULL,
