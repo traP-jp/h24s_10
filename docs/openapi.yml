@@ -40,6 +40,34 @@ paths:
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
+    get:
+      description: イベントの確定した参加者を取得
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetEventParticipantsResponse"
+  /events/{eventID}/targets:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    get:
+      description: イベントの参加候補者を取得
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetEventTargetsResponse"
+  /events/{eventID}/applicants:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
     post:
       description: 都合のいい日程候補を提出
       tags:
@@ -52,6 +80,17 @@ paths:
       responses:
         201:
           description: Created
+    get:
+      description: イベント参加希望を出した人たちを取得
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetEventApplicantsResponse"
   /traq/groups:
     get:
       description: get all traQ groups
@@ -117,29 +156,15 @@ components:
     GetEventResponse:
       type: object
       properties:
-        event_id:
+        id:
           type: string
           format: uuid
         title:
           type: string
         description:
           type: string
-        participants:
-          type: array
-          items:
-            type: object
-            properties:
-              userID:
-                type: string
-                description: traQID
-              dateOptionIDs:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-        status:
-          type: string
-          description: 日時が決定済みか
+        isConfirmed:
+          type: boolean
         date:
           type: object
           properties:
@@ -174,6 +199,22 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/traQUser"
+    GetEventTargetsResponse:
+      type: array
+      items:
+        type: string
+        description: traQ userID
+    GetEventApplicantsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          userID:
+            type: string
+          dateOptionIDs:
+            type: array
+            items:
+              type: string
     GetTraQGroupsResponse:
       type: object
       properties:
