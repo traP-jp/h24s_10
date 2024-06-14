@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: h24s_10
+  version: 0.0.1
+  description: traP 24 spring hackathon team 10
+
+paths:
+  /events:
+    summary: event
+    description: event description
+    post:
+      description: create a new event
+      tags:
+        - event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostEventRequest"
+      responses:
+        201:
+          description: Created
+  /events/{eventID}:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetEventResponse"
+  /events/{eventID}/participants:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetEventParticipantsResponse"
+  /traq/groups:
+    post:
+      description: create a new traQ group
+      tags:
+        - traq
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostTraQGroupRequest"
+      responses:
+        201:
+          description: Created
+  /traq/groups/{groupName}:
+    parameters:
+      - $ref: "#/components/parameters/groupName"
+    get:
+      tags:
+        - traq
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTraQGroupResponse"
+    put:
+      description: 指定した request body で group の内容を置き換える
+      tags:
+        - traq
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutTraQGroupRequest"
+      responses:
+        204:
+          description: OK
+      
+components:
+  schemas:
+    PostEventRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        host_id:
+          type: string
+          description: 主催者traQ ID
+        description:
+          type: string
+        date_options:
+          type: array
+          items:
+            type: string
+            format: date
+    GetEventResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          format: uuid
+          description: 日時が決定済みか
+        date:
+          type: string
+          format: date
+      required:
+        - event_id
+        - title
+        - description
+        - status
+    GetEventParticipantsResponse:
+      type: array
+      items:
+        type: string
+        description: 参加者traQ ID
+    PostTraQGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+            description: member traQ ID
+      required:
+        - name
+    GetTraQGroupResponse:
+      type: array
+      items:
+        type: string
+        description: member traQ ID
+    PutTraQGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+            description: member traQ ID
+      required:
+        - name
+        - members
+
+  parameters:
+    eventID:
+      name: eventID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    groupName:
+      name: groupName
+      in: path
+      required: true
+      schema:
+        type: string
