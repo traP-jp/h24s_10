@@ -1,0 +1,64 @@
+@startuml
+
+hide circle
+
+skinparam linetype ortho
+
+title h24s_10
+
+package "h24s_10" as "h24s_10" {
+    entity "events" {
+        + id: VARCHAR(36) [PK]
+        title: VARCHAR(255)
+        date_start: DATETIME
+        date_end: DATETIME
+        host_id: VARCHAR(36)
+        location: VARCHAR(255)
+        traq_group_id: VARCHAR(36)
+        description: TEXT
+        created_at: DATETIME
+        status: VARCHAR(32)
+    }
+
+    entity "participants" {
+        + id: VARCHAR(36) [PK]
+        traq_id: VARCHAR(255)
+        event_id: VARCHAR(36)
+        team_id: INT
+    }
+
+    entity "eventdate" {
+        + id: VARCHAR(36) [PK]
+        event_id: VARCHAR(36)
+        date: DATETIME
+        created_at: DATETIME
+    }
+
+    entity "date_vote" {
+        + id: VARCHAR(36) [PK]
+        eventdate_id: VARCHAR(36)
+        user_id: VARCHAR(36)
+        created_at: DATETIME
+    }
+
+    entity "comments" {
+        + id: VARCHAR(36) [PK]
+        event_id: VARCHAR(36)
+        user_id: VARCHAR(36)
+        description: TEXT
+        created_at: DATETIME
+    }
+
+    entity "traq_groups" {
+        + id: VARCHAR(36) [PK]
+        name: VARCHAR(255)
+    }
+}
+
+events ||--o{ participants: "event_id"
+events ||--o{ eventdate: "event_id"
+eventdate ||--o{ date_vote: "eventdate_id"
+events ||--o{ comments: "event_id"
+events ||--o{ traq_groups: "traq_group_id"
+
+@enduml
