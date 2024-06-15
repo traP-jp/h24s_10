@@ -20,7 +20,15 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 
 // (GET /events/{eventID}/participants)
 func (h *Handler) GetEventsEventIDParticipants(ctx echo.Context, eventID api.EventID) error {
-	return nil
+	participants, err := h.repo.GetParticipants(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	res := make(api.GetEventParticipantsResponse, len(participants))
+	for i, participant := range participants {
+		res[i] = participant.TraQID
+	}
+	return ctx.JSON(http.StatusOK, res)
 }
 
 // (GET /events/{eventID}/targets)
