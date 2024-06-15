@@ -18,6 +18,18 @@ paths:
               schema:
                 type: string
                 example: pong
+  /me:
+    get:
+      tags:
+        - me
+      description: get my traQ ID
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMeResponse"
   /events:
     summary: event
     description: event description
@@ -145,6 +157,11 @@ paths:
 
 components:
   schemas:
+    GetMeResponse:
+      type: object
+      properties:
+        traQID:
+          type: string
     PostEventRequest:
       type: object
       properties:
