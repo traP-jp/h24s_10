@@ -65,6 +65,11 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 	return nil
 }
 
+// (PATCH /events/{eventID}/confirm)
+func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventID) error {
+	return nil
+}
+
 // (GET /events/{eventID}/participants)
 func (h *Handler) GetEventsEventIDParticipants(ctx echo.Context, eventID api.EventID) error {
 	participants, err := h.repo.GetParticipants(eventID)
