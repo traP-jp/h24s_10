@@ -8,16 +8,8 @@ import { usePostEvents, useGetMe } from "/@/generated/api/openapi";
 import { start } from "repl";
 import { onMounted } from "vue";
 
-//const { isLoading, data: me } = useGetMe();
-const { mutate: postEvent } = usePostEvents();
-
-onMounted(() => {
-  fetch("/api/me")
-    .then((res) => res.text())
-    .then((data) => {
-      console.log(data);
-    });
-});
+const { isLoading, data: me } = useGetMe();
+const { mutate: postEvent, error: postEventError } = usePostEvents();
 
 type FilterFunction = Exclude<
   VAutocomplete["$props"]["customFilter"],
@@ -64,7 +56,7 @@ const removeDate = (index: number) => {
   Dates.value.splice(index, 1);
 };
 
-const createEvent = async () => {
+const createEvent = () => {
   postEvent({
     data: {
       title: eventName.value,
@@ -81,7 +73,7 @@ const createEvent = async () => {
 
 <template>
   <h1>イベント作成</h1>
-  <!-- {{ me?.data.traQID }} -->
+  {{ me?.data.traQID }}
   <h2>イベント名</h2>
   <v-text-field v-model="eventName" label="イベント名" />
 
@@ -143,6 +135,7 @@ const createEvent = async () => {
   </v-dialog>
   <br />
   <v-btn color="blue" @click="createEvent">イベント作成</v-btn>
+  {{ postEventError }}
 </template>
 
 <style module lang="scss">
