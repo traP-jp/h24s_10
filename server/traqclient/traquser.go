@@ -24,9 +24,7 @@ type (
 )
 
 func (c *Client) GetUsers(ctx context.Context) ([]User, error) {
-	if ACCESS_TOKEN == "" {
-		return nil, errors.New("access token is missing")
-	}
+	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
 	resp, _, err := c.apiClient.UserApi.GetUsers(ctx).Execute()
 	if err != nil {
 		log.Printf("get user error: %v", err)
