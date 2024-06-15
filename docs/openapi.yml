@@ -5,6 +5,31 @@ info:
   description: traP 24 spring hackathon team 10
 
 paths:
+  /ping:
+    get:
+      description: Ping endpoint
+      tags:
+        - health
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: pong
+  /me:
+    get:
+      tags:
+        - me
+      description: get my traQ ID
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMeResponse"
   /events:
     summary: event
     description: event description
@@ -37,6 +62,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetEventResponse"
+  /events/{eventID}/confirm:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    patch:
+      tags:
+        - event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchEventConfirmRequest"
+      responses:
+        204:
+          description: OK
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -115,9 +154,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetTraQUsersResponse"
-      
+
 components:
   schemas:
+    GetMeResponse:
+      type: object
+      properties:
+        traQID:
+          type: string
     PostEventRequest:
       type: object
       properties:
@@ -146,13 +190,17 @@ components:
             description: traQ ID
       required:
         - title
+        - description
         - dateOptions
+        - targets
     PostEventResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
+      required:
+        - id
     GetEventResponse:
       type: object
       properties:
@@ -166,17 +214,7 @@ components:
         isConfirmed:
           type: boolean
         date:
-          type: object
-          properties:
-            start:
-              type: string
-              format: date-time
-            end:
-              type: string
-              format: date-time
-          required:
-            - start
-            - end
+          $ref: "#/components/schemas/DateTimeResponse"
         dateOptions:
           type: array
           items:
@@ -186,6 +224,28 @@ components:
         - title
         - description
         - status
+    DateTimeResponse:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - start
+        - end
+    PatchEventConfirmRequest:
+      type: object
+      properties:
+        isConfirmed:
+          type: boolean
+        eventDateOptionID:
+          type: string
+          format: uuid
+      required:
+        - isConfirmed
     PostEventApplicantsRequest:
       type: object
       properties:
@@ -208,23 +268,11 @@ components:
     GetEventApplicantsResponse:
       type: array
       items:
-        type: object
-        properties:
-          userID:
-            type: string
-          dateOptionIDs:
-            type: array
-            items:
-              type: string
+        $ref: "#/components/schemas/applicant"
     GetTraQGroupsResponse:
-      type: object
-      properties:
-        name:
-          type: string
-        members:
-          type: array
-          items:
-            $ref: "#/components/schemas/traQUser"
+      type: array
+      items:
+        $ref: "#/components/schemas/traQGroup"
     GetTraQUsersResponse:
       type: array
       items:
@@ -245,6 +293,16 @@ components:
         - id
         - start
         - end
+    applicant:
+      type: object
+      properties:
+        traqID:
+          type: string
+        dateOptionIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
     traQUser:
       type: object
       properties:
@@ -255,6 +313,15 @@ components:
       required:
         - name
         - displayName
+    traQGroup:
+      type: object
+      properties:
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/traQUser"
 
   parameters:
     eventID:
