@@ -22,6 +22,15 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
+	// check if exist same pair of date start and date end
+	for i, dateOption := range req.DateOptions {
+		for j := i + 1; j < len(req.DateOptions); j++ {
+			if dateOption.Start == req.DateOptions[j].Start && dateOption.End == req.DateOptions[j].End {
+				return echo.NewHTTPError(http.StatusBadRequest, "date options must be unique")
+			}
+		}
+	}
+
 	// check if the targets are valid
 	eg, c := errgroup.WithContext(ctx.Request().Context())
 	eg.SetLimit(10)
