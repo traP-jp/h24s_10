@@ -73,6 +73,7 @@ const createEvent = () => {
 
 <template>
   <h1>イベント作成</h1>
+  {{ isLoading }}
   {{ me?.data.traQID }}
   <h2>イベント名</h2>
   <v-text-field v-model="eventName" label="イベント名" />
