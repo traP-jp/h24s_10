@@ -340,13 +340,6 @@ components:
             $ref: "#/components/schemas/traQUser"
 
   parameters:
-    eventMe:
-      name: eventID
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
     eventID:
       name: eventID
       in: path
