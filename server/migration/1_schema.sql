@@ -9,7 +9,7 @@ CREATE TABLE `events` (
     `description` TEXT,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_confirmed` TINYINT(1) NOT NULL, -- 確定しているかどうか
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `targets` (
@@ -19,7 +19,7 @@ CREATE TABLE `targets` (
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`event_id`) REFERENCES `events` (`id`)
-)
+);
 
 CREATE TABLE `participants` (
     `id` VARCHAR(36) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE `date_votes` (
     `user_id` VARCHAR(36) NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    FOREIGN KEY (`event_date_id`) REFERENCES `event_date` (`id`)
+    FOREIGN KEY (`event_date_id`) REFERENCES `event_dates` (`id`)
 );
 
 CREATE TABLE `comments` (
