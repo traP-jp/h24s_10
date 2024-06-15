@@ -118,7 +118,7 @@ type EventID = openapi_types.UUID
 
 // GetEventsAllParams defines parameters for GetEventsAll.
 type GetEventsAllParams struct {
-	OmitPastEvents *bool `form:"omitPastEvents,omitempty" json:"omitPastEvents,omitempty"`
+	IncludePastEvents *bool `form:"includePastEvents,omitempty" json:"includePastEvents,omitempty"`
 }
 
 // PostEventsJSONRequestBody defines body for PostEvents for application/json ContentType.
@@ -190,11 +190,11 @@ func (w *ServerInterfaceWrapper) GetEventsAll(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetEventsAllParams
-	// ------------- Optional query parameter "omitPastEvents" -------------
+	// ------------- Optional query parameter "includePastEvents" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "omitPastEvents", ctx.QueryParams(), &params.OmitPastEvents)
+	err = runtime.BindQueryParameter("form", true, false, "includePastEvents", ctx.QueryParams(), &params.IncludePastEvents)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter omitPastEvents: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includePastEvents: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments

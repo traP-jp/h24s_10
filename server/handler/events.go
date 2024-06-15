@@ -84,16 +84,16 @@ func (h *Handler) GetEventsAll(ctx echo.Context, params api.GetEventsAllParams) 
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	var omitPastEvents bool
-	if params.OmitPastEvents != nil {
-		omitPastEvents = *params.OmitPastEvents
+	var includePathEvents bool
+	if params.IncludePastEvents != nil {
+		includePathEvents = *params.IncludePastEvents
 	} else {
-		omitPastEvents = true
+		includePathEvents = true
 	}
 
 	res := make(api.GetAllEventsResponse, 0, len(events))
 	for _, event := range events {
-		if omitPastEvents && event.End.Valid && event.End.Time.Before(time.Now()) {
+		if !includePathEvents && event.End.Valid && event.End.Time.Before(time.Now()) {
 			continue
 		}
 		e := api.GetAllEventsElement{

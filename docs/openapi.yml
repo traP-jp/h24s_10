@@ -55,7 +55,7 @@ paths:
         - event
       parameters:
         - in: query
-          name: omitPastEvents
+          name: includePastEvents
           schema:
             type: boolean
       responses:
