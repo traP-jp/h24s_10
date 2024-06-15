@@ -220,6 +220,7 @@ components:
             type: array
             items:
               type: string
+              format: uuid
     GetTraQGroupsResponse:
       type: object
       properties:
