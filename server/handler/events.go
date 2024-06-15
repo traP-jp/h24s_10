@@ -140,7 +140,6 @@ func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventI
 	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
-
 	}
 
 	return ctx.NoContent(http.StatusNoContent)
