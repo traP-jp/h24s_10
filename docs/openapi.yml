@@ -5,6 +5,19 @@ info:
   description: traP 24 spring hackathon team 10
 
 paths:
+  /ping:
+    get:
+      description: Ping endpoint
+      tags:
+        - health
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: pong
   /events:
     summary: event
     description: event description
