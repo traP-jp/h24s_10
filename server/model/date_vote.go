@@ -49,7 +49,7 @@ func (repo *Repository) CreateDateVotes(votes []DateVote) error {
 
 func (repo *Repository) GetDateVotesByUser(traqID string) ([]DateVoteAndEventID, error) {
 	dateVoteAndEventID := make([]DateVoteAndEventID, 0)
-	err := repo.db.Select(&dateVoteAndEventID, "SELECT event_dates.event_id FROM date_votes JOIN event_dates ON date_votes.event_date_id = event_dates.id WHERE date_votes.traq_id = ?;", traqID)
+	err := repo.db.Select(&dateVoteAndEventID, "SELECT event_dates.event_id FROM date_votes JOIN event_dates ON date_votes.event_date_id = event_dates.id WHERE date_votes.traq_id = ?", traqID)
 	if err != nil {
 		return nil, err
 	}
