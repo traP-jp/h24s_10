@@ -3,14 +3,61 @@ package handler
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
+	"github.com/traP-jp/h24s_10/model"
 
 	"github.com/labstack/echo/v4"
 )
 
 // (POST /events)
 func (h *Handler) PostEvents(ctx echo.Context) error {
-	return nil
+	var req api.PostEventRequest
+	if err := ctx.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	hostID := ctx.Get(traQIDKey).(string)
+	eventID, err := uuid.NewV7()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	event := model.Event{
+		ID:          eventID,
+		Title:       req.Title,
+		HostID:      hostID,
+		Description: req.Description,
+		IsConfirmed: false,
+	}
+	err = h.repo.CreateEvent(event)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	options := make([]model.EventDate, len(req.DateOptions))
+	for i, option := range req.DateOptions {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		options[i] = model.EventDate{
+			ID:      id,
+			EventID: eventID,
+			Start:   option.Start,
+			End:     option.End,
+		}
+	}
+	err = h.repo.CreateEventDates(options)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	res := api.PostEventResponse{
+		Id: eventID,
+	}
+
+	return ctx.JSON(http.StatusCreated, res)
 }
 
 // (GET /events/{eventID})
