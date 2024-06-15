@@ -49,6 +49,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostEventResponse"
+  /events/all:
+    get:
+      tags:
+        - event
+      parameters:
+        - in: query
+          name: omitPastEvents
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllEventsResponse"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -201,6 +217,10 @@ components:
           format: uuid
       required:
         - id
+    GetAllEventsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/getAllEventsElement"
     GetEventResponse:
       type: object
       properties:
@@ -277,6 +297,26 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/traQUser"
+    getAllEventsElement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        isConfirmed:
+          type: boolean
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - isConfirmed
     dateOption:
       type: object
       properties:
