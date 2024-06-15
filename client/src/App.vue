@@ -5,7 +5,7 @@ import Navigation from "./components/Navigation.vue";
 <template>
   <div style="position: absolute; top: 0; left: 0; width: 100vw">
     <Navigation />
-    <div style="max-width: 50rem; margin: auto; margin-top: 6rem">
+    <div style="max-width: 50rem; margin: auto; margin-top: 2rem">
       <RouterView />
     </div>
   </div>

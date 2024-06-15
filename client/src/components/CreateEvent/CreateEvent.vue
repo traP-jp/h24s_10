@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import type { VAutocomplete } from "vuetify/lib/components/index.mjs";
 import DateSelector from "./DateSelector.vue";
+import { mdiPlus, mdiClose } from "@mdi/js";
+import { format } from "date-fns";
 
 type FilterFunction = Exclude<
   VAutocomplete["$props"]["customFilter"],
@@ -25,7 +27,6 @@ const count = ref(0);
 const eventName = ref("");
 const eventDescription = ref("");
 const invitees = ref<User[]>([]);
-const startDate = ref(new Date());
 
 const userSearchFilter: FilterFunction = (_, query, item?) => {
   const name = item?.raw.name ?? "";
@@ -35,6 +36,18 @@ const userSearchFilter: FilterFunction = (_, query, item?) => {
     name.toLowerCase().includes(query.toLowerCase()) ||
     displayName.toLowerCase().includes(query.toLowerCase())
   );
+};
+
+const dialog = ref(false);
+const Dates = ref<{ startDate: Date; endDate: Date }[]>([]);
+
+const addDates = (dates: { startDate: Date; endDate: Date }[]) => {
+  Dates.value = [...Dates.value, ...dates];
+  Dates.value.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+};
+
+const removeDate = (index: number) => {
+  Dates.value.splice(index, 1);
 };
 </script>
 
@@ -77,34 +90,51 @@ const userSearchFilter: FilterFunction = (_, query, item?) => {
   </v-autocomplete>
 
   <h2>日程候補</h2>
+  <v-list :class="$style.list">
+    <TransitionGroup name="list">
+      <v-list-item
+        v-for="(date, index) in Dates"
+        :key="date.startDate.toISOString() + date.endDate.toISOString()"
+      >
+        {{ format(date.startDate, "yyyy年MM月dd日") }}
+        {{ format(date.startDate, "HH:mm") }}
+        ～
+        {{ format(date.endDate, "HH:mm") }}
+        <v-btn @click="removeDate(index)" :icon="mdiClose" variant="plain" />
+      </v-list-item>
+    </TransitionGroup>
+  </v-list>
 
-  <DateSelector />
-
-  <div class="card">
-    <button type="button" @click="count++">count is {{ count }}</button>
-    <p>
-      Edit
-      <code>components/HelloWorld.vue</code> to test HMR
-    </p>
-  </div>
-
-  <p>
-    Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
-  </p>
-  <p>
-    Install
-    <a href="https://github.com/johnsoncodehk/volar" target="_blank">Volar</a>
-    in your IDE for a better DX
-  </p>
-  <p :class="$style.read">Click on the Vite and Vue logos to learn more</p>
-  <v-btn @click="count++">count is {{ count }}</v-btn>
+  <v-btn @click="dialog = true">
+    <v-icon :icon="mdiPlus" />
+    日程を追加
+  </v-btn>
+  <v-dialog v-model="dialog" max-width="800" max-height="600">
+    <DateSelector @close="dialog = false" @update:value="addDates" />
+  </v-dialog>
+  <br />
+  <v-btn color="blue">イベント作成</v-btn>
 </template>
 
 <style module lang="scss">
-.read {
-  color: #888;
+.list {
+  position: relative;
+  overflow: hidden;
+  width: fit-content;
+  margin: auto;
+}
+</style>
+
+<style scoped>
+.list-move, /* 移動する要素にトランジションを適用 */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
 </style>
