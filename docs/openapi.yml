@@ -49,7 +49,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostEventResponse"
-  /events/me/applicant:
+  /events/me/participate:
     get:
       description: 自分の参加するイベント(isConfirmedがtrueのものだけ)
       tags:
@@ -60,7 +60,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetEventMyApplicantsResponse"
+                $ref: "#/components/schemas/GetMyParticipateEventsResponse"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -213,7 +213,7 @@ components:
           format: uuid
       required:
         - id
-    GetEventMyApplicant:
+    GetMyParticipateEvent:
       type: object
       properties:
         id:
@@ -225,10 +225,15 @@ components:
           type: string
         date:
           $ref: "#/components/schemas/DateTimeResponse"
-    GetEventMyApplicantsResponse:
+      required:
+        - id
+        - title
+        - description
+        - date
+    GetMyParticipateEventsResponse:
       type: array
       items:
-        $ref: "#/components/schemas/GetEventMyApplicant"
+        $ref: "#/components/schemas/GetMyParticipateEvent"
     GetEventResponse:
       type: object
       properties:

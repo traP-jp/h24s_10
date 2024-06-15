@@ -10,26 +10,26 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// (GET /events/me/applicant)
-func (h *Handler) GetEventsMeApplicant(ctx echo.Context) error {
+// (GET /events/me/participate)
+func (h *Handler) GetEventsMeParticipate(ctx echo.Context) error {
 	traQID := ctx.Get(traQIDKey).(string)
 
 	participateEventsDetail, err := h.repo.GetParticipateEventsDetailByTraQID(traQID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	res := make(api.GetEventMyApplicantsResponse, 0, len(participateEventsDetail))
+	res := make(api.GetMyParticipateEventsResponse, 0, len(participateEventsDetail))
 	for _, event := range participateEventsDetail {
 		date := api.DateTimeResponse{}
 		if event.Start.Valid && event.End.Valid {
 			date.Start = event.Start.Time
 			date.End = event.End.Time
 		}
-		res = append(res, api.GetEventMyApplicant{
-			Date:        &date,
-			Description: &event.Description,
-			Id:          &event.ID,
-			Title:       &event.Title,
+		res = append(res, api.GetMyParticipateEvent{
+			Date:        date,
+			Description: event.Description,
+			Id:          event.ID,
+			Title:       event.Title,
 		})
 	}
 	return ctx.JSON(http.StatusOK, res)
