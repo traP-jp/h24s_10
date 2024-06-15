@@ -29,6 +29,15 @@ func (repo *Repository) GetEvents() ([]Event, error) {
 	return events, nil
 }
 
+func (repo *Repository) GetEventsByHost(host string) ([]Event, error) {
+	var events []Event
+	err := repo.db.Select(&events, "SELECT * FROM events WHERE host_id = ?", host)
+	if err != nil {
+		return nil, err
+	}
+	return events, nil
+}
+
 func (repo *Repository) CreateEvent(event Event) error {
 	_, err := repo.db.Exec("INSERT INTO events (id, title, start, end, host_id, location, description, is_confirmed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		event.ID, event.Title, event.Start, event.End, event.HostID, event.Location, event.Description, event.IsConfirmed)

@@ -47,9 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EventMeResponse'
+                $ref: "#/components/schemas/EventMeResponses"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -211,11 +209,18 @@ components:
           type: boolean
         isAnswered:
           type: boolean
+        isHost:
+          type: boolean
       required:
         - event_id
         - title
         - isConfirmed
         - isAnswered
+        - isHost
+    EventMeResponses:
+      type: array
+      items:
+        $ref: "#/components/schemas/EventMeResponse"
     GetEventResponse:
       type: object
       properties:
@@ -235,7 +240,7 @@ components:
           items:
             $ref: "#/components/schemas/dateOption"
       required:
-        - event_id
+        - id
         - title
         - description
         - isConfirmed

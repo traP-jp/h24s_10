@@ -32,7 +32,7 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 	res := make(api.GetEventApplicantsResponse, 0, len(dateOptions))
 	for traQID, dateIDs := range dateOptions {
 		res = append(res, api.Applicant{
-			TraqID: &traQID,
+			TraqID:        &traQID,
 			DateOptionIDs: &dateIDs,
 		})
 	}
@@ -52,13 +52,13 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		
+
 		traQID := ctx.Get(traQIDKey).(string)
 		dateVotes = append(dateVotes, model.DateVote{
 			ID: id,
-			EventID: eventID,
-			TraQID:  traQID,
-			DateID:  dateOption,
+			// EventID: eventID,
+			TraQID: traQID,
+			DateID: dateOption,
 		})
 	}
 
