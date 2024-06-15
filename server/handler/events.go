@@ -2,6 +2,8 @@ package handler
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
 	"slices"
 	"time"
@@ -9,6 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
 	"github.com/traP-jp/h24s_10/model"
+	"github.com/traP-jp/h24s_10/traqclient"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,6 +22,33 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 	var req api.PostEventRequest
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	// check if exist same pair of date start and date end
+	for i, dateOption := range req.DateOptions {
+		for j := i + 1; j < len(req.DateOptions); j++ {
+			if dateOption.Start == req.DateOptions[j].Start && dateOption.End == req.DateOptions[j].End {
+				return echo.NewHTTPError(http.StatusBadRequest, "date options must be unique")
+			}
+		}
+	}
+
+	// check if the targets are valid
+	eg, c := errgroup.WithContext(ctx.Request().Context())
+	eg.SetLimit(10)
+	for _, target := range req.Targets {
+		eg.Go(func() error {
+			_, err := h.client.GetUser(c, target)
+			if err == traqclient.ErrUserNotFound {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("user %s not found", target))
+			} else if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	hostID := ctx.Get(traQIDKey).(string)
@@ -111,6 +142,78 @@ func (h *Handler) GetEventsAll(ctx echo.Context, params api.GetEventsAllParams) 
 	return ctx.JSON(http.StatusOK, res)
 }
 
+// (GET /events/me)
+func (h *Handler) GetEventsMe(ctx echo.Context) error {
+	userID := ctx.Get(traQIDKey).(string)
+	// ホストとなっているイベントの取得
+	eventsByHost, err := h.repo.GetEventsByHost(userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	// 回答候補となっているイベントの取得
+	eventsByTarget, err := h.repo.GetEventsByTargetUser(userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	// ホストとなっていないイベントのみに限定
+	removedHostEvent := removeEventHostFromTarget(eventsByHost, eventsByTarget)
+
+	// 回答済みのイベントの取得
+	eventAnsweredStruct, err := h.repo.GetDateVotesByUser(userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	eventAnsweredMap := make(map[uuid.UUID]struct{})
+	for _, e := range eventAnsweredStruct {
+		eventAnsweredMap[e.EventID] = struct{}{}
+		log.Printf("eventAnsweredMap: %v", e.EventID)
+	}
+
+	res := make([]api.EventMeResponse, 0, len(eventsByHost)+len(removedHostEvent))
+	for _, event := range eventsByHost {
+		_, isAnswered := eventAnsweredMap[event.ID]
+		res = append(res, api.EventMeResponse{
+			Description: &event.Description,
+			EventId:     event.ID,
+			IsAnswered:  isAnswered,
+			IsConfirmed: event.IsConfirmed,
+			IsHost:      true,
+			Title:       event.Title,
+		})
+	}
+	for _, event := range removedHostEvent {
+		_, isAnswered := eventAnsweredMap[event.ID]
+		res = append(res, api.EventMeResponse{
+			Description: &event.Description,
+			EventId:     event.ID,
+			IsAnswered:  isAnswered,
+			IsConfirmed: event.IsConfirmed,
+			IsHost:      false,
+			Title:       event.Title,
+		})
+	}
+	return ctx.JSON(http.StatusOK, res)
+}
+
+func removeEventHostFromTarget(hostEvent, targetEvent []model.Event) []model.Event {
+	removedEvent := []model.Event{}
+	for i := 0; i < len(targetEvent); i++ {
+		check := false
+		for j := 0; j < len(hostEvent); j++ {
+			if targetEvent[i].ID == hostEvent[j].ID {
+				check = true
+				break
+			}
+		}
+		if !check {
+			removedEvent = append(removedEvent, targetEvent[i])
+		}
+	}
+	return removedEvent
+}
+
 // (GET /events/{eventID})
 func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error {
 	event, err := h.repo.GetEventByEventID(eventID)
@@ -130,10 +233,10 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 		})
 	}
 	getEventsByEventIDResponse := api.GetEventResponse{
-		DateOptions: &dateOptionsResponse,
+		DateOptions: dateOptionsResponse,
 		Description: event.Description,
-		Id:          &event.ID,
-		IsConfirmed: &event.IsConfirmed,
+		Id:          event.ID,
+		IsConfirmed: event.IsConfirmed,
 		Title:       event.Title,
 	}
 	if event.Start.Valid && event.End.Valid {

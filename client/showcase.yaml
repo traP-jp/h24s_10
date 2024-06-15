@@ -1,0 +1,9 @@
+# type: static
+# startup: npm install && npm i @esbuild/linux-x64 && npm run build && rm -rf dist
+# http_proxy: 8080
+# https: hard
+# work_dir: 'dist'
+# cname:
+#   - exercise-app-kari.trap.games
+# branch:
+#   main: null

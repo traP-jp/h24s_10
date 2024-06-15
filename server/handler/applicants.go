@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -9,6 +10,31 @@ import (
 
 	"github.com/labstack/echo/v4"
 )
+
+// (GET /events/me/participate)
+func (h *Handler) GetEventsMeParticipate(ctx echo.Context) error {
+	traQID := ctx.Get(traQIDKey).(string)
+
+	participateEventsDetail, err := h.repo.GetParticipateEventsDetailByTraQID(traQID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	res := make(api.GetMyParticipateEventsResponse, 0, len(participateEventsDetail))
+	for _, event := range participateEventsDetail {
+		date := api.DateTimeResponse{}
+		if event.Start.Valid && event.End.Valid {
+			date.Start = event.Start.Time
+			date.End = event.End.Time
+		}
+		res = append(res, api.GetMyParticipateEvent{
+			Date:        date,
+			Description: event.Description,
+			Id:          event.ID,
+			Title:       event.Title,
+		})
+	}
+	return ctx.JSON(http.StatusOK, res)
+}
 
 // (GET /events/{eventID}/applicants)
 func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.EventID) error {
@@ -32,7 +58,7 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 	res := make(api.GetEventApplicantsResponse, 0, len(dateOptions))
 	for traQID, dateIDs := range dateOptions {
 		res = append(res, api.Applicant{
-			TraqID: &traQID,
+			TraqID:        &traQID,
 			DateOptionIDs: &dateIDs,
 		})
 	}
@@ -45,24 +71,36 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	if len(*req.DateOptionIDs) == 0 {
+		return ctx.NoContent(http.StatusOK)
+	}
+	// eventIDがeventDateIDのそれぞれの値が齟齬がないか確認
+	err := h.repo.ValidateEventDateIDsFromEventID(eventID, *req.DateOptionIDs)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid event ID and DateOptionIDs: %v", err))
+	}
 
-	dateVotes := []model.DateVote{}
+	traQID := ctx.Get(traQIDKey).(string)
+
+	// traqIDがeventDateIDのそれぞれの値が齟齬がないか確認
+	err = h.repo.ValidateEventDateIDsFromTraqID(traQID, *req.DateOptionIDs)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already exists traqID and DateOptionIDs: %v", err))
+	}
+
+	dateVotes := make([]model.DateVote, 0, len(*req.DateOptionIDs))
 	for _, dateOption := range *req.DateOptionIDs {
 		id, err := uuid.NewV7()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		
-		traQID := ctx.Get(traQIDKey).(string)
 		dateVotes = append(dateVotes, model.DateVote{
-			ID: id,
-			EventID: eventID,
-			TraQID:  traQID,
-			DateID:  dateOption,
+			ID:     id,
+			TraQID: traQID,
+			DateID: dateOption,
 		})
 	}
-
-	err := h.repo.CreateDateVotes(dateVotes)
+	err = h.repo.CreateDateVotes(dateVotes)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
