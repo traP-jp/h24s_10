@@ -58,9 +58,9 @@ type PostEventRequest struct {
 		End   time.Time `json:"end"`
 		Start time.Time `json:"start"`
 	} `json:"dateOptions"`
-	Description *string   `json:"description,omitempty"`
-	Targets     *[]string `json:"targets,omitempty"`
-	Title       string    `json:"title"`
+	Description string   `json:"description"`
+	Targets     []string `json:"targets"`
+	Title       string   `json:"title"`
 }
 
 // PostEventResponse defines model for PostEventResponse.
