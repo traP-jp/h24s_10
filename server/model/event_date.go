@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,4 +38,29 @@ func (repo *Repository) CreateEventDates(dates []EventDate) error {
 	}
 
 	return tx.Commit()
+}
+
+func (repo *Repository) ValidateEventDateIDsFromEventID(eventID uuid.UUID, dateIDs []uuid.UUID) error {
+	var count int
+	err := repo.db.Get(&count, "SELECT COUNT(*) FROM event_dates WHERE event_id = ? AND id IN (?)", eventID, dateIDs)
+	if err != nil {
+		return err
+	}
+	if count != len(dateIDs) {
+		return fmt.Errorf("invalid date IDs: %v", dateIDs)
+	}
+	return nil
+}
+
+func (repo *Repository) ValidateEventDateIDsFromTraqID(traQID string, dateIDs []uuid.UUID) error {
+	// すでにtraQIDとdateIDsの組み合わせが存在するか確認
+	var count int
+	err := repo.db.Get(&count, "SELECT COUNT(*) FROM date_votes WHERE traq_id = ? AND event_date_id IN (?)", traQID, dateIDs)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return fmt.Errorf("invalid date IDs: %v", dateIDs)
+	}
+	return nil
 }
