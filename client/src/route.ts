@@ -1,9 +1,13 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import {
+  createRouter,
+  createWebHashHistory,
+  createWebHistory,
+} from "vue-router";
 import HelloWorld from "./components/HelloWorld.vue";
 import ApplicateEvent from "./components/ApplicateEvent.vue";
 
 export const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     {
       path: "/",
@@ -14,7 +18,8 @@ export const router = createRouter({
       path: "/ApplicateEvent",
       name: "ApplicateEvent",
       component: ApplicateEvent,
-    },{
+    },
+    {
       path: "/create-event",
       name: "CreateEvent",
       component: () => import("./components/CreateEvent/CreateEvent.vue"),
