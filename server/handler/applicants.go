@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -36,8 +35,6 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 			DateOptionIDs: &dateIDs,
 		})
 	}
-	fmt.Println("デバッグ！！！！！！")
-	fmt.Println(res)
 	return ctx.JSON(http.StatusOK, res)
 }
 
