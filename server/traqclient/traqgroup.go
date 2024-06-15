@@ -20,8 +20,8 @@ type (
 	}
 
 	UserGroupMember struct {
-		Id   string //	ユーザーUUID
-		Role string //	ユーザーの役割
+		Id   string // ユーザーUUID
+		Role string // ユーザーの役割
 	}
 )
 
