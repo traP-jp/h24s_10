@@ -55,8 +55,7 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 
 		traQID := ctx.Get(traQIDKey).(string)
 		dateVotes = append(dateVotes, model.DateVote{
-			ID: id,
-			// EventID: eventID,
+			ID:     id,
 			TraQID: traQID,
 			DateID: dateOption,
 		})
