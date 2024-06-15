@@ -12,6 +12,7 @@ services:
       DB_HOST: db
       DB_PORT: "3306"
       DB_NAME: app
+      DEVELOPMENT: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -30,7 +31,14 @@ services:
       - "3306"
     healthcheck:
       test:
-        ["CMD", "mysql", "--user=root", "--password=pass", "--execute", "SHOW DATABASES;"]
+        [
+          "CMD",
+          "mysql",
+          "--user=root",
+          "--password=pass",
+          "--execute",
+          "SHOW DATABASES;",
+        ]
       interval: 1s
       timeout: 10s
       retries: 30

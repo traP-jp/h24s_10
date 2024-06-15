@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"strconv"
+
 	"github.com/traP-jp/h24s_10/api"
 	"github.com/traP-jp/h24s_10/handler"
 	"github.com/traP-jp/h24s_10/migration"
@@ -17,6 +20,16 @@ func main() {
 	// middlewares
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
+
+	dev, err := strconv.ParseBool(os.Getenv("DEVELOPMENT"))
+	if err != nil {
+		dev = false
+	}
+	if !dev {
+		e.Use(handler.TraQIDMiddleware)
+	} else {
+		e.Use(handler.DevTraQIDMiddleware)
+	}
 
 	// connect to database
 	db, err := sqlx.Connect("mysql", model.MySQL().FormatDSN())
