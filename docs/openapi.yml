@@ -37,6 +37,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostEventResponse"
+  /events/me:
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventMeResponse'
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -184,6 +197,25 @@ components:
           format: uuid
       required:
         - id
+    EventMeResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        isConfirmed:
+          type: boolean
+        isAnswered:
+          type: boolean
+      required:
+        - event_id
+        - title
+        - isConfirmed
+        - isAnswered
     GetEventResponse:
       type: object
       properties:
@@ -206,7 +238,8 @@ components:
         - event_id
         - title
         - description
-        - status
+        - isConfirmed
+        - dateOptions
     DateTimeResponse:
       type: object
       properties:
@@ -307,6 +340,13 @@ components:
             $ref: "#/components/schemas/traQUser"
 
   parameters:
+    eventMe:
+      name: eventID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     eventID:
       name: eventID
       in: path
