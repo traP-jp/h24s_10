@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.0.0",
     "cjs-module": "^1.5.0",
     "create-vite": "^4.0.0",
     "sass": "^1.56.2",
@@ -19,6 +20,7 @@
     "vuetify": "^3.6.9"
   },
   "devDependencies": {
+    "@mdi/js": "^7.4.47",
     "@openapitools/openapi-generator-cli": "^2.5.2",
     "@types/node": "^20.3.1",
     "@typescript-eslint/eslint-plugin": "^5.46.0",

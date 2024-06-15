@@ -14,6 +14,10 @@ export const router = createRouter({
       path: "/ApplicateEvent",
       name: "ApplicateEvent",
       component: ApplicateEvent,
+    },{
+      path: "/create-event",
+      name: "CreateEvent",
+      component: () => import("./components/CreateEvent/CreateEvent.vue"),
     },
   ],
 });
