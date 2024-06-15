@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
+	"github.com/traP-jp/h24s_10/model"
 
 	"github.com/labstack/echo/v4"
 )
@@ -40,5 +41,31 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 
 // (POST /events/{eventID}/applicants)
 func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.EventID) error {
-	return nil
+	var req api.PostEventApplicantsRequest
+	if err := ctx.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	dateVotes := []model.DateVote{}
+	for _, dateOption := range *req.DateOptionIDs {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		
+		traQID := ctx.Get(traQIDKey).(string)
+		dateVotes = append(dateVotes, model.DateVote{
+			ID: id,
+			EventID: eventID,
+			TraQID:  traQID,
+			DateID:  dateOption,
+		})
+	}
+
+	err := h.repo.CreateDateVotes(dateVotes)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return ctx.NoContent(http.StatusCreated)
 }

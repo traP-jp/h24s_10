@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,5 +24,20 @@ func (repo *Repository) GetEventDateVotes(eventDateID uuid.UUID) ([]DateVote, er
 }
 
 func (repo *Repository) CreateDateVotes(votes []DateVote) error {
-	return errors.New("not implemented")
+	if len(votes) == 0 {
+		return nil
+	}
+
+	tx, err := repo.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.NamedExec("INSERT INTO date_votes (id, event_date_id, traq_id) VALUES (:id, :event_date_id, :traq_id)", votes)
+	if err != nil {
+		return err
+	}
+	
+	return tx.Commit()
 }
