@@ -21,3 +21,22 @@ func (repo *Repository) GetEventTargets(eventID uuid.UUID) ([]EventTarget, error
 	}
 	return targets, nil
 }
+
+func (repo *Repository) CreateEventTargets(targets []EventTarget) error {
+	if len(targets) == 0 {
+		return nil
+	}
+
+	tx, err := repo.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.NamedExec("INSERT INTO `targets` (id, event_id, traq_id) VALUES (:id, :event_id, :traq_id)", targets)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
