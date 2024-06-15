@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,7 +15,12 @@ type EventDate struct {
 }
 
 func (repo *Repository) GetEventDates(eventID uuid.UUID) ([]EventDate, error) {
-	return nil, errors.New("not implemented")
+	eventDateList := []EventDate{}
+	err := repo.db.Select(&eventDateList, "SELECT * FROM `event_dates` WHERE `event_id` = ?", eventID)
+	if err != nil {
+		return nil, err
+	}
+	return eventDateList, nil
 }
 
 // CreateEventDates creates event dates. This function uses a bulk insert.

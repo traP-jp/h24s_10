@@ -62,7 +62,36 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 
 // (GET /events/{eventID})
 func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error {
-	return nil
+	event, err := h.repo.GetEventByEventID(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	dateOptionResponse, err := h.repo.GetEventDates(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	var dateOptionsResponse []api.DateOption
+	for _, dateOption := range dateOptionResponse {
+		dateOptionsResponse = append(dateOptionsResponse, api.DateOption{
+			End:   dateOption.End,
+			Id:    dateOption.ID,
+			Start: dateOption.Start,
+		})
+	}
+	getEventsByEventIDResponse := api.GetEventResponse{
+		DateOptions: &dateOptionsResponse,
+		Description: event.Description,
+		Id:          &event.ID,
+		IsConfirmed: &event.IsConfirmed,
+		Title:       event.Title,
+	}
+	if event.Start != nil {
+		getEventsByEventIDResponse.Date.Start = *event.Start
+	}
+	if event.End != nil {
+		getEventsByEventIDResponse.Date.End = *event.End
+	}
+	return ctx.JSON(http.StatusOK, getEventsByEventIDResponse)
 }
 
 // (GET /events/{eventID}/participants)
