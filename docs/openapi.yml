@@ -214,7 +214,7 @@ components:
       items:
         type: object
         properties:
-          userID:
+          traqID:
             type: string
           dateOptionIDs:
             type: array

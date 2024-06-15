@@ -16,7 +16,7 @@ import (
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []struct {
 	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
-	UserID        *string               `json:"userID,omitempty"`
+	TraqID        *string               `json:"traqID,omitempty"`
 }
 
 // GetEventParticipantsResponse defines model for GetEventParticipantsResponse.
