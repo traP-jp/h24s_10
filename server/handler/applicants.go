@@ -10,6 +10,31 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// (GET /events/me/applicant)
+func (h *Handler) GetEventsMeApplicant(ctx echo.Context) error {
+	traQID := ctx.Get(traQIDKey).(string)
+
+	participateEventsDetail, err := h.repo.GetParticipateEventsDetailByTraQID(traQID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	res := make(api.GetEventMyApplicantsResponse, 0, len(participateEventsDetail))
+	for _, event := range participateEventsDetail {
+		date := api.DateTimeResponse{}
+		if event.Start.Valid && event.End.Valid {
+			date.Start = event.Start.Time
+			date.End = event.End.Time
+		}
+		res = append(res, api.GetEventMyApplicant{
+			Date:        &date,
+			Description: &event.Description,
+			Id:          &event.ID,
+			Title:       &event.Title,
+		})
+	}
+	return ctx.JSON(http.StatusOK, res)
+}
+
 // (GET /events/{eventID}/applicants)
 func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.EventID) error {
 	eventDates, err := h.repo.GetEventDates(eventID)
@@ -32,7 +57,7 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 	res := make(api.GetEventApplicantsResponse, 0, len(dateOptions))
 	for traQID, dateIDs := range dateOptions {
 		res = append(res, api.Applicant{
-			TraqID: &traQID,
+			TraqID:        &traQID,
 			DateOptionIDs: &dateIDs,
 		})
 	}
@@ -52,10 +77,10 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		
+
 		traQID := ctx.Get(traQIDKey).(string)
 		dateVotes = append(dateVotes, model.DateVote{
-			ID: id,
+			ID:      id,
 			EventID: eventID,
 			TraQID:  traQID,
 			DateID:  dateOption,

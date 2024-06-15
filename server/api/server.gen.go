@@ -22,6 +22,17 @@ type DateTimeResponse struct {
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []Applicant
 
+// GetEventMyApplicant defines model for GetEventMyApplicant.
+type GetEventMyApplicant struct {
+	Date        *DateTimeResponse   `json:"date,omitempty"`
+	Description *string             `json:"description,omitempty"`
+	Id          *openapi_types.UUID `json:"id,omitempty"`
+	Title       *string             `json:"title,omitempty"`
+}
+
+// GetEventMyApplicantsResponse defines model for GetEventMyApplicantsResponse.
+type GetEventMyApplicantsResponse = []GetEventMyApplicant
+
 // GetEventParticipantsResponse defines model for GetEventParticipantsResponse.
 type GetEventParticipantsResponse = []string
 
@@ -119,6 +130,9 @@ type ServerInterface interface {
 	// (POST /events)
 	PostEvents(ctx echo.Context) error
 
+	// (GET /events/me/applicant)
+	GetEventsMeApplicant(ctx echo.Context) error
+
 	// (GET /events/{eventID})
 	GetEventsEventID(ctx echo.Context, eventID EventID) error
 
@@ -161,6 +175,15 @@ func (w *ServerInterfaceWrapper) PostEvents(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostEvents(ctx)
+	return err
+}
+
+// GetEventsMeApplicant converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsMeApplicant(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsMeApplicant(ctx)
 	return err
 }
 
@@ -325,6 +348,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/events", wrapper.PostEvents)
+	router.GET(baseURL+"/events/me/applicant", wrapper.GetEventsMeApplicant)
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)
