@@ -13,6 +13,7 @@ services:
       DB_PORT: "3306"
       DB_NAME: app
       DEVELOPMENT: "true"
+      ACCESS_TOKEN:
     depends_on:
       db:
         condition: service_healthy

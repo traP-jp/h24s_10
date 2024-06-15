@@ -39,10 +39,7 @@ type GetEventResponse struct {
 type GetEventTargetsResponse = []string
 
 // GetTraQGroupsResponse defines model for GetTraQGroupsResponse.
-type GetTraQGroupsResponse struct {
-	Members *[]TraQUser `json:"members,omitempty"`
-	Name    *string     `json:"name,omitempty"`
-}
+type GetTraQGroupsResponse = []TraQGroup
 
 // GetTraQUsersResponse defines model for GetTraQUsersResponse.
 type GetTraQUsersResponse = []TraQUser
@@ -73,6 +70,12 @@ type DateOption struct {
 	End   time.Time          `json:"end"`
 	Id    openapi_types.UUID `json:"id"`
 	Start time.Time          `json:"start"`
+}
+
+// TraQGroup defines model for traQGroup.
+type TraQGroup struct {
+	Members *[]TraQUser `json:"members,omitempty"`
+	Name    *string     `json:"name,omitempty"`
 }
 
 // TraQUser defines model for traQUser.
