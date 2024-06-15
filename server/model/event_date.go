@@ -2,9 +2,11 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type EventDate struct {
@@ -42,8 +44,15 @@ func (repo *Repository) CreateEventDates(dates []EventDate) error {
 
 func (repo *Repository) ValidateEventDateIDsFromEventID(eventID uuid.UUID, dateIDs []uuid.UUID) error {
 	var count int
-	err := repo.db.Get(&count, "SELECT COUNT(*) FROM event_dates WHERE event_id = ? AND id IN (?)", eventID, dateIDs)
+	query, args, err := sqlx.In("SELECT COUNT(*) FROM event_dates WHERE event_id = ? AND id IN (?)", eventID, dateIDs)
 	if err != nil {
+		log.Println("Error creating SQL query")
+		return err
+	}
+	query = repo.db.Rebind(query)
+	err = repo.db.Get(&count, query, args...)
+	if err != nil {
+		log.Println("Error getting count from event_dates")
 		return err
 	}
 	if count != len(dateIDs) {
@@ -55,7 +64,12 @@ func (repo *Repository) ValidateEventDateIDsFromEventID(eventID uuid.UUID, dateI
 func (repo *Repository) ValidateEventDateIDsFromTraqID(traQID string, dateIDs []uuid.UUID) error {
 	// すでにtraQIDとdateIDsの組み合わせが存在するか確認
 	var count int
-	err := repo.db.Get(&count, "SELECT COUNT(*) FROM date_votes WHERE traq_id = ? AND event_date_id IN (?)", traQID, dateIDs)
+	query, args, err := sqlx.In("SELECT COUNT(*) FROM date_votes WHERE traq_id = ? AND event_date_id IN (?)", traQID, dateIDs)
+	if err != nil {
+		return err
+	}
+	query = repo.db.Rebind(query)
+	err = repo.db.Get(&count, query, args...)
 	if err != nil {
 		return err
 	}
