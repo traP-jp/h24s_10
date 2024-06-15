@@ -14,10 +14,7 @@ import (
 )
 
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
-type GetEventApplicantsResponse = []struct {
-	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
-	TraqID        *string               `json:"traqID,omitempty"`
-}
+type GetEventApplicantsResponse = []Applicant
 
 // GetEventParticipantsResponse defines model for GetEventParticipantsResponse.
 type GetEventParticipantsResponse = []string
@@ -44,6 +41,12 @@ type GetTraQGroupsResponse = []TraQGroup
 // GetTraQUsersResponse defines model for GetTraQUsersResponse.
 type GetTraQUsersResponse = []TraQUser
 
+// PatchEventConfirmRequest defines model for PatchEventConfirmRequest.
+type PatchEventConfirmRequest struct {
+	EventDateOptionID *openapi_types.UUID `json:"eventDateOptionID,omitempty"`
+	IsConfirmed       bool                `json:"isConfirmed"`
+}
+
 // PostEventApplicantsRequest defines model for PostEventApplicantsRequest.
 type PostEventApplicantsRequest struct {
 	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
@@ -63,6 +66,12 @@ type PostEventRequest struct {
 // PostEventResponse defines model for PostEventResponse.
 type PostEventResponse struct {
 	Id openapi_types.UUID `json:"id"`
+}
+
+// Applicant defines model for applicant.
+type Applicant struct {
+	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
+	TraqID        *string               `json:"traqID,omitempty"`
 }
 
 // DateOption defines model for dateOption.
@@ -93,6 +102,9 @@ type PostEventsJSONRequestBody = PostEventRequest
 // PostEventsEventIDApplicantsJSONRequestBody defines body for PostEventsEventIDApplicants for application/json ContentType.
 type PostEventsEventIDApplicantsJSONRequestBody = PostEventApplicantsRequest
 
+// PatchEventsEventIDConfirmJSONRequestBody defines body for PatchEventsEventIDConfirm for application/json ContentType.
+type PatchEventsEventIDConfirmJSONRequestBody = PatchEventConfirmRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -107,6 +119,9 @@ type ServerInterface interface {
 
 	// (POST /events/{eventID}/applicants)
 	PostEventsEventIDApplicants(ctx echo.Context, eventID EventID) error
+
+	// (PATCH /events/{eventID}/confirm)
+	PatchEventsEventIDConfirm(ctx echo.Context, eventID EventID) error
 
 	// (GET /events/{eventID}/participants)
 	GetEventsEventIDParticipants(ctx echo.Context, eventID EventID) error
@@ -180,6 +195,22 @@ func (w *ServerInterfaceWrapper) PostEventsEventIDApplicants(ctx echo.Context) e
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostEventsEventIDApplicants(ctx, eventID)
+	return err
+}
+
+// PatchEventsEventIDConfirm converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchEventsEventIDConfirm(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "eventID" -------------
+	var eventID EventID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "eventID", ctx.Param("eventID"), &eventID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter eventID: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchEventsEventIDConfirm(ctx, eventID)
 	return err
 }
 
@@ -265,6 +296,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)
+	router.PATCH(baseURL+"/events/:eventID/confirm", wrapper.PatchEventsEventIDConfirm)
 	router.GET(baseURL+"/events/:eventID/participants", wrapper.GetEventsEventIDParticipants)
 	router.GET(baseURL+"/events/:eventID/targets", wrapper.GetEventsEventIDTargets)
 	router.GET(baseURL+"/traq/groups", wrapper.GetTraqGroups)
