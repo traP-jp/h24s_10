@@ -13,7 +13,7 @@ const { mutate: postEvent } = usePostEvents();
 
 onMounted(() => {
   fetch("/api/me")
-    .then((res) => res.json())
+    .then((res) => res.text())
     .then((data) => {
       console.log(data);
     });
