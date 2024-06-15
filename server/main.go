@@ -5,6 +5,8 @@ import (
 	"github.com/traP-jp/h24s_10/handler"
 	"github.com/traP-jp/h24s_10/migration"
 	"github.com/traP-jp/h24s_10/model"
+	"github.com/traP-jp/h24s_10/traqclient"
+	"github.com/traPtitech/go-traq"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -33,8 +35,13 @@ func main() {
 	// setup repository
 	repo := model.New(db)
 
+	configuration := traq.NewConfiguration()
+	apiClient := traq.NewAPIClient(configuration)
+
+	traqclient := traqclient.New(apiClient)
+
 	// setup routes
-	h := handler.New(repo)
+	h := handler.New(repo, traqclient)
 
 	api.RegisterHandlersWithBaseURL(e, h, "/api")
 
