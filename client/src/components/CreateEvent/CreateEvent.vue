@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { VAutocomplete } from "vuetify/lib/components/index.mjs";
 import DateSelector from "./DateSelector.vue";
 import { mdiPlus, mdiClose } from "@mdi/js";
 import { format } from "date-fns";
-import { usePostEvents, useGetMe } from "/@/generated/api/openapi";
+import {
+  usePostEvents,
+  useGetMe,
+  useGetTraqUsers,
+  useGetTraqGroups,
+} from "/@/generated/api/openapi";
 import { start } from "repl";
 import { onMounted } from "vue";
 
 const { isLoading, data: me } = useGetMe();
+const { data: traQusers } = useGetTraqUsers();
+const { data: groups } = useGetTraqGroups();
 const { mutate: postEvent, error: postEventError } = usePostEvents();
 
 type FilterFunction = Exclude<
@@ -20,14 +27,7 @@ type User = {
   displayName: string;
 };
 
-const users: User[] = [
-  { name: "noc7t", displayName: "ノクナートン" },
-  { name: "ogu_kazemiya", displayName: "かぜみやおぐ" },
-  { name: "pirosiki", displayName: "pirosiki" },
-  { name: "Luftalian", displayName: "ルフタリアン" },
-  { name: "jippo", displayName: "jippo" },
-  { name: "pippi0057", displayName: "pippi0057" },
-];
+const users = computed(() => traQusers.value?.data ?? []);
 
 const eventName = ref("");
 const eventDescription = ref("");
@@ -57,6 +57,15 @@ const removeDate = (index: number) => {
 };
 
 const createEvent = () => {
+  console.log({
+    title: eventName.value,
+    description: eventDescription.value,
+    dateOptions: Dates.value.map(({ startDate, endDate }) => ({
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+    })),
+    targets: invitees.value.map(({ name }) => name),
+  });
   postEvent({
     data: {
       title: eventName.value,
