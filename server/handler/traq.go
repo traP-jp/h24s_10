@@ -2,20 +2,17 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/traP-jp/h24s_10/api"
+	"github.com/traP-jp/h24s_10/traqclient"
 	"github.com/traPtitech/go-traq"
 )
 
 // (GET /traq/groups)
 func (h *Handler) GetTraqGroups(ctx echo.Context) error {
-	if ACCESS_TOKEN == "" {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("access token is missing"))
-	}
-	ctxWithToken := context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, ACCESS_TOKEN)
+	ctxWithToken := context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, traqclient.ACCESS_TOKEN)
 	groupList, err := h.client.GetUserGroups(ctxWithToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -51,10 +48,7 @@ func (h *Handler) GetTraqGroups(ctx echo.Context) error {
 
 // (GET /traq/users)
 func (h *Handler) GetTraqUsers(ctx echo.Context) error {
-	if ACCESS_TOKEN == "" {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("access token is missing"))
-	}
-	userList, err := h.client.GetUsers(context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, ACCESS_TOKEN))
+	userList, err := h.client.GetUsers(context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, traqclient.ACCESS_TOKEN))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

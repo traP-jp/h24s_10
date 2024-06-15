@@ -1,13 +1,9 @@
 package handler
 
 import (
-	"os"
-
 	"github.com/traP-jp/h24s_10/model"
 	"github.com/traP-jp/h24s_10/traqclient"
 )
-
-var ACCESS_TOKEN = os.Getenv("ACCESS_TOKEN")
 
 type Handler struct {
 	repo   *model.Repository

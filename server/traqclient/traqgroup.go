@@ -2,6 +2,7 @@ package traqclient
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 )
@@ -26,6 +27,9 @@ type (
 )
 
 func (c *Client) GetUserGroups(ctx context.Context) ([]Group, error) {
+	if ACCESS_TOKEN == "" {
+		return nil, errors.New("access token is missing")
+	}
 	resp, _, err := c.apiClient.GroupApi.GetUserGroups(ctx).Execute()
 	if err != nil {
 		log.Printf("get user groups error: %v", err)
