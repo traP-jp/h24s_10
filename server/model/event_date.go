@@ -49,7 +49,6 @@ func (repo *Repository) ValidateEventDateIDsFromEventID(eventID uuid.UUID, dateI
 		log.Println("Error creating SQL query")
 		return err
 	}
-	query = repo.db.Rebind(query)
 	err = repo.db.Get(&count, query, args...)
 	if err != nil {
 		log.Println("Error getting count from event_dates")
@@ -68,7 +67,6 @@ func (repo *Repository) ValidateEventDateIDsFromTraqID(traQID string, dateIDs []
 	if err != nil {
 		return err
 	}
-	query = repo.db.Rebind(query)
 	err = repo.db.Get(&count, query, args...)
 	if err != nil {
 		return err

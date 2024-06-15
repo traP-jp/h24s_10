@@ -46,7 +46,9 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
+	if len(*req.DateOptionIDs) == 0 {
+		return ctx.NoContent(http.StatusOK)
+	}
 	// eventIDがeventDateIDのそれぞれの値が齟齬がないか確認
 	err := h.repo.ValidateEventDateIDsFromEventID(eventID, *req.DateOptionIDs)
 	if err != nil {
