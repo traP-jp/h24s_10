@@ -12,7 +12,7 @@ services:
       DB_HOST: db
       DB_PORT: "3306"
       DB_NAME: app
-      ACCESS_TOKEN: ""
+      ACCESS_TOKEN:
     depends_on:
       db:
         condition: service_healthy

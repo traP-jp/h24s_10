@@ -1,4 +1,4 @@
-package model
+package traqclient
 
 import (
 	"context"
@@ -25,8 +25,8 @@ type (
 	}
 )
 
-func (r2 *Repository2) GetUserGroups(ctx context.Context) ([]Group, error) {
-	resp, _, err := r2.apiClient.GroupApi.GetUserGroups(ctx).Execute()
+func (c *Client) GetUserGroups(ctx context.Context) ([]Group, error) {
+	resp, _, err := c.apiClient.GroupApi.GetUserGroups(ctx).Execute()
 	if err != nil {
 		log.Printf("get user groups error: %v", err)
 		return nil, err

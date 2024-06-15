@@ -16,12 +16,12 @@ func (h *Handler) GetTraqGroups(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("access token is missing"))
 	}
 	ctxWithToken := context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, ACCESS_TOKEN)
-	groupList, err := h.repo2.GetUserGroups(ctxWithToken)
+	groupList, err := h.client.GetUserGroups(ctxWithToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	userMap, err := h.repo2.GetUsersMap(ctxWithToken)
+	userMap, err := h.client.GetUsersMap(ctxWithToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -54,7 +54,7 @@ func (h *Handler) GetTraqUsers(ctx echo.Context) error {
 	if ACCESS_TOKEN == "" {
 		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("access token is missing"))
 	}
-	userList, err := h.repo2.GetUsers(context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, ACCESS_TOKEN))
+	userList, err := h.client.GetUsers(context.WithValue(ctx.Request().Context(), traq.ContextAccessToken, ACCESS_TOKEN))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

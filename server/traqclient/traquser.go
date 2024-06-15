@@ -1,4 +1,4 @@
-package model
+package traqclient
 
 import (
 	"context"
@@ -15,12 +15,12 @@ type (
 		Bot         bool      // BOTかどうか
 		UpdatedAt   time.Time // 更新日時
 	}
+
+	UserMap map[string]User
 )
 
-type UserMap map[string]User
-
-func (r2 *Repository2) GetUsers(ctx context.Context) ([]User, error) {
-	resp, _, err := r2.apiClient.UserApi.GetUsers(ctx).Execute()
+func (c *Client) GetUsers(ctx context.Context) ([]User, error) {
+	resp, _, err := c.apiClient.UserApi.GetUsers(ctx).Execute()
 	if err != nil {
 		log.Printf("get user error: %v", err)
 		return nil, err
@@ -39,8 +39,8 @@ func (r2 *Repository2) GetUsers(ctx context.Context) ([]User, error) {
 	return UserList, nil
 }
 
-func (r2 *Repository2) GetUsersMap(ctx context.Context) (UserMap, error) {
-	resp, _, err := r2.apiClient.UserApi.GetUsers(ctx).Execute()
+func (c *Client) GetUsersMap(ctx context.Context) (UserMap, error) {
+	resp, _, err := c.apiClient.UserApi.GetUsers(ctx).Execute()
 	if err != nil {
 		log.Printf("get user map error: %v", err)
 		return nil, err
