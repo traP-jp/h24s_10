@@ -4,6 +4,20 @@ import type { VAutocomplete } from "vuetify/lib/components/index.mjs";
 import DateSelector from "./DateSelector.vue";
 import { mdiPlus, mdiClose } from "@mdi/js";
 import { format } from "date-fns";
+import { usePostEvents, useGetMe } from "/@/generated/api/openapi";
+import { start } from "repl";
+import { onMounted } from "vue";
+
+//const { isLoading, data: me } = useGetMe();
+const { mutate: postEvent } = usePostEvents();
+
+onMounted(() => {
+  fetch("/api/me")
+    .then((res) => res.json())
+    .then((data) => {
+      console.log(data);
+    });
+});
 
 type FilterFunction = Exclude<
   VAutocomplete["$props"]["customFilter"],
@@ -23,7 +37,6 @@ const users: User[] = [
   { name: "pippi0057", displayName: "pippi0057" },
 ];
 
-const count = ref(0);
 const eventName = ref("");
 const eventDescription = ref("");
 const invitees = ref<User[]>([]);
@@ -44,15 +57,31 @@ const Dates = ref<{ startDate: Date; endDate: Date }[]>([]);
 const addDates = (dates: { startDate: Date; endDate: Date }[]) => {
   Dates.value = [...Dates.value, ...dates];
   Dates.value.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  console.log(Dates.value[0].startDate.toISOString());
 };
 
 const removeDate = (index: number) => {
   Dates.value.splice(index, 1);
 };
+
+const createEvent = async () => {
+  postEvent({
+    data: {
+      title: eventName.value,
+      description: eventDescription.value,
+      dateOptions: Dates.value.map(({ startDate, endDate }) => ({
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+      })),
+      targets: invitees.value.map(({ name }) => name),
+    },
+  });
+};
 </script>
 
 <template>
   <h1>イベント作成</h1>
+  <!-- {{ me?.data.traQID }} -->
   <h2>イベント名</h2>
   <v-text-field v-model="eventName" label="イベント名" />
 
@@ -113,7 +142,7 @@ const removeDate = (index: number) => {
     <DateSelector @close="dialog = false" @update:value="addDates" />
   </v-dialog>
   <br />
-  <v-btn color="blue">イベント作成</v-btn>
+  <v-btn color="blue" @click="createEvent">イベント作成</v-btn>
 </template>
 
 <style module lang="scss">
