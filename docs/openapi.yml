@@ -184,17 +184,7 @@ components:
         isConfirmed:
           type: boolean
         date:
-          type: object
-          properties:
-            start:
-              type: string
-              format: date-time
-            end:
-              type: string
-              format: date-time
-          required:
-            - start
-            - end
+          $ref: "#/components/schemas/DateTimeResponse"
         dateOptions:
           type: array
           items:
@@ -204,6 +194,18 @@ components:
         - title
         - description
         - status
+    DateTimeResponse:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - start
+        - end
     PatchEventConfirmRequest:
       type: object
       properties:
