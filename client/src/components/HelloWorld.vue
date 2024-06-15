@@ -27,6 +27,7 @@ const count = ref(0);
     in your IDE for a better DX
   </p>
   <p :class="$style.read">Click on the Vite and Vue logos to learn more</p>
+  <v-btn @click="count++">count is {{ count }}</v-btn>
 </template>
 
 <style module lang="scss">
