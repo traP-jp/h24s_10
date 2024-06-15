@@ -15,8 +15,8 @@ import (
 
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []struct {
-	DateOptionIDs *[]string `json:"dateOptionIDs,omitempty"`
-	UserID        *string   `json:"userID,omitempty"`
+	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
+	TraqID        *string               `json:"traqID,omitempty"`
 }
 
 // GetEventParticipantsResponse defines model for GetEventParticipantsResponse.
@@ -58,14 +58,14 @@ type PostEventRequest struct {
 		End   time.Time `json:"end"`
 		Start time.Time `json:"start"`
 	} `json:"dateOptions"`
-	Description *string   `json:"description,omitempty"`
-	Targets     *[]string `json:"targets,omitempty"`
-	Title       string    `json:"title"`
+	Description string   `json:"description"`
+	Targets     []string `json:"targets"`
+	Title       string   `json:"title"`
 }
 
 // PostEventResponse defines model for PostEventResponse.
 type PostEventResponse struct {
-	Id *openapi_types.UUID `json:"id,omitempty"`
+	Id openapi_types.UUID `json:"id"`
 }
 
 // DateOption defines model for dateOption.
