@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import HelloWorld from "./components/HelloWorld.vue";
+import ApplicateEvent from "./components/ApplicateEvent.vue";
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -8,6 +9,11 @@ export const router = createRouter({
       path: "/",
       name: "Home",
       component: HelloWorld,
+    },
+    {
+      path: "/ApplicateEvent",
+      name: "ApplicateEvent",
+      component: ApplicateEvent,
     },
   ],
 });
