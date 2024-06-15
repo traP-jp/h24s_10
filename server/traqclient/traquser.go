@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/traPtitech/go-traq"
@@ -71,13 +70,14 @@ var ErrUserNotFound = errors.New("user not found")
 // If the user is not found, it returns [ErrUserNotFound].
 func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
 	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
-	user, res, err := c.apiClient.UserApi.GetUser(ctx, userID).Execute()
+	users, _, err := c.apiClient.UserApi.GetUsers(ctx).Name(userID).Execute()
 	if err != nil {
 		return User{}, err
 	}
-	if res.StatusCode == http.StatusNotFound {
+	if len(users) == 0 {
 		return User{}, ErrUserNotFound
 	}
+	user := users[0]
 	return User{
 		Id:          user.Id,
 		Name:        user.Name,
