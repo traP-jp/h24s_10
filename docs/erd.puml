@@ -10,14 +10,21 @@ package "h24s_10" as "h24s_10" {
     entity "events" {
         + id: VARCHAR(36) [PK]
         title: VARCHAR(255)
-        date_start: DATETIME
-        date_end: DATETIME
+        start: DATETIME
+        end: DATETIME
         host_id: VARCHAR(36)
         location: VARCHAR(255)
-        traq_group_id: VARCHAR(36)
         description: TEXT
         created_at: DATETIME
+        is_confirmed: TINYINT
         status: VARCHAR(32)
+    }
+
+    entity "targets" {
+        + id: VARCHAR(36) [PK]
+        event_id: VARCHAR(36)
+        user_id: VARCHAR(36)
+        created_at: DATETIME
     }
 
     entity "participants" {
@@ -27,16 +34,17 @@ package "h24s_10" as "h24s_10" {
         team_id: INT
     }
 
-    entity "eventdate" {
+    entity "event_dates" {
         + id: VARCHAR(36) [PK]
         event_id: VARCHAR(36)
-        date: DATETIME
+        start: DATETIME
+        end: DATETIME
         created_at: DATETIME
     }
 
-    entity "date_vote" {
+    entity "date_votes" {
         + id: VARCHAR(36) [PK]
-        eventdate_id: VARCHAR(36)
+        event_date_id: VARCHAR(36)
         user_id: VARCHAR(36)
         created_at: DATETIME
     }
@@ -48,17 +56,12 @@ package "h24s_10" as "h24s_10" {
         description: TEXT
         created_at: DATETIME
     }
-
-    entity "traq_groups" {
-        + id: VARCHAR(36) [PK]
-        name: VARCHAR(255)
-    }
 }
 
 events ||--o{ participants: "event_id"
-events ||--o{ eventdate: "event_id"
-eventdate ||--o{ date_vote: "eventdate_id"
+events ||--o{ event_dates: "event_id"
+event_dates ||--o{ date_votes: "event_date_id"
 events ||--o{ comments: "event_id"
-events ||--o{ traq_groups: "traq_group_id"
+events ||--o{ targets: "event_id"
 
 @enduml
