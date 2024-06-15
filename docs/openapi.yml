@@ -350,6 +350,12 @@ components:
             type: string
             format: uuid
             description: 日時候補のID
+        comment:
+          type: string
+          description: 何かコメントがあれば
+      required:
+        - dateOptionIDs
+        - comment
     GetEventParticipantsResponse:
       type: array
       items:

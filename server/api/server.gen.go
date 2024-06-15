@@ -43,13 +43,15 @@ type GetEventParticipantsResponse = []string
 
 // GetEventResponse defines model for GetEventResponse.
 type GetEventResponse struct {
-	Date        *DateTimeResponse  `json:"date,omitempty"`
-	DateOptions []DateOption       `json:"dateOptions"`
-	Description string             `json:"description"`
+	Date        *DateTimeResponse `json:"date,omitempty"`
+	DateOptions []DateOption      `json:"dateOptions"`
+	Description string            `json:"description"`
+
+	// HostID traQ ID
+	HostID      string             `json:"hostID"`
 	Id          openapi_types.UUID `json:"id"`
 	IsConfirmed bool               `json:"isConfirmed"`
 	Title       string             `json:"title"`
-	HostID      string             `json:"hostID"`
 }
 
 // GetEventTargetsResponse defines model for GetEventTargetsResponse.
@@ -85,7 +87,9 @@ type PatchEventConfirmRequest struct {
 
 // PostEventApplicantsRequest defines model for PostEventApplicantsRequest.
 type PostEventApplicantsRequest struct {
-	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
+	// Comment 何かコメントがあれば
+	Comment       string               `json:"comment"`
+	DateOptionIDs []openapi_types.UUID `json:"dateOptionIDs"`
 }
 
 // PostEventRequest defines model for PostEventRequest.
