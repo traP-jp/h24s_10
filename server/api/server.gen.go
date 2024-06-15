@@ -132,6 +132,9 @@ type ServerInterface interface {
 	// (GET /events/{eventID}/targets)
 	GetEventsEventIDTargets(ctx echo.Context, eventID EventID) error
 
+	// (GET /ping)
+	GetPing(ctx echo.Context) error
+
 	// (GET /traq/groups)
 	GetTraqGroups(ctx echo.Context) error
 
@@ -249,6 +252,15 @@ func (w *ServerInterfaceWrapper) GetEventsEventIDTargets(ctx echo.Context) error
 	return err
 }
 
+// GetPing converts echo context to params.
+func (w *ServerInterfaceWrapper) GetPing(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetPing(ctx)
+	return err
+}
+
 // GetTraqGroups converts echo context to params.
 func (w *ServerInterfaceWrapper) GetTraqGroups(ctx echo.Context) error {
 	var err error
@@ -302,6 +314,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PATCH(baseURL+"/events/:eventID/confirm", wrapper.PatchEventsEventIDConfirm)
 	router.GET(baseURL+"/events/:eventID/participants", wrapper.GetEventsEventIDParticipants)
 	router.GET(baseURL+"/events/:eventID/targets", wrapper.GetEventsEventIDTargets)
+	router.GET(baseURL+"/ping", wrapper.GetPing)
 	router.GET(baseURL+"/traq/groups", wrapper.GetTraqGroups)
 	router.GET(baseURL+"/traq/users", wrapper.GetTraqUsers)
 
