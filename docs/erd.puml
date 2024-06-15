@@ -1,4 +1,4 @@
-@startuml
+@startuml h24s_10
 
 hide circle
 
@@ -45,15 +45,15 @@ package "h24s_10" as "h24s_10" {
     entity "date_votes" {
         + id: VARCHAR(36) [PK]
         event_date_id: VARCHAR(36)
-        user_id: VARCHAR(36)
+        traq_id: VARCHAR(36)
         created_at: DATETIME
     }
 
     entity "comments" {
         + id: VARCHAR(36) [PK]
         event_id: VARCHAR(36)
-        user_id: VARCHAR(36)
-        description: TEXT
+        traq_id: VARCHAR(36)
+        content: TEXT
         created_at: DATETIME
     }
 }
