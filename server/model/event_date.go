@@ -21,5 +21,16 @@ func (repo *Repository) GetEventDates(eventID uuid.UUID) ([]EventDate, error) {
 
 // CreateEventDates creates event dates. This function uses a bulk insert.
 func (repo *Repository) CreateEventDates(dates []EventDate) error {
-	return errors.New("not implemented")
+	tx, err := repo.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.NamedExec("INSERT INTO `event_dates` (id, event_id, start, end) VALUES (:id, :event_id, :start, :end)", dates)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
