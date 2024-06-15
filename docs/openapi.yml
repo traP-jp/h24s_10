@@ -236,15 +236,7 @@ components:
     GetEventApplicantsResponse:
       type: array
       items:
-        type: object
-        properties:
-          traqID:
-            type: string
-          dateOptionIDs:
-            type: array
-            items:
-              type: string
-              format: uuid
+        $ref: "#/components/schemas/applicant"
     GetTraQGroupsResponse:
       type: array
       items:
@@ -269,6 +261,16 @@ components:
         - id
         - start
         - end
+    applicant:
+      type: object
+      properties:
+        traqID:
+          type: string
+        dateOptionIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
     traQUser:
       type: object
       properties:
