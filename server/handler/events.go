@@ -138,7 +138,7 @@ func removeEventHostFromTarget(hostEvent, targetEvent []model.Event) []model.Eve
 	for i := 0; i < len(targetEvent); i++ {
 		check := false
 		for j := 0; j < len(hostEvent); j++ {
-			if hostEvent[i].ID == targetEvent[j].ID {
+			if targetEvent[i].ID == hostEvent[j].ID {
 				check = true
 				break
 			}
