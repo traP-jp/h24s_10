@@ -85,11 +85,11 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 		IsConfirmed: &event.IsConfirmed,
 		Title:       event.Title,
 	}
-	if event.Start != nil {
-		getEventsByEventIDResponse.Date.Start = *event.Start
-	}
-	if event.End != nil {
-		getEventsByEventIDResponse.Date.End = *event.End
+	if event.Start.Valid && event.End.Valid {
+		getEventsByEventIDResponse.Date = &api.DateTimeResponse{
+			End:   event.End.Time,
+			Start: event.Start.Time,
+		}
 	}
 	return ctx.JSON(http.StatusOK, getEventsByEventIDResponse)
 }

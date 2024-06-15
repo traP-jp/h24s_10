@@ -13,6 +13,12 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// DateTimeResponse defines model for DateTimeResponse.
+type DateTimeResponse struct {
+	End   time.Time `json:"end"`
+	Start time.Time `json:"start"`
+}
+
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []struct {
 	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
@@ -24,10 +30,7 @@ type GetEventParticipantsResponse = []string
 
 // GetEventResponse defines model for GetEventResponse.
 type GetEventResponse struct {
-	Date *struct {
-		End   time.Time `json:"end"`
-		Start time.Time `json:"start"`
-	} `json:"date,omitempty"`
+	Date        *DateTimeResponse   `json:"date,omitempty"`
 	DateOptions *[]DateOption       `json:"dateOptions,omitempty"`
 	Description string              `json:"description"`
 	Id          *openapi_types.UUID `json:"id,omitempty"`

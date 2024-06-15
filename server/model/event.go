@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"log"
 	"time"
 
@@ -8,15 +9,15 @@ import (
 )
 
 type Event struct {
-	ID          uuid.UUID  `db:"id"`
-	Title       string     `db:"title"`
-	Start       *time.Time `db:"start"`
-	End         *time.Time `db:"end"`
-	HostID      string     `db:"host_id"`
-	Location    string     `db:"location"`
-	Description string     `db:"description"`
-	IsConfirmed bool       `db:"is_confirmed"`
-	CreatedAt   time.Time  `db:"created_at"`
+	ID          uuid.UUID    `db:"id"`
+	Title       string       `db:"title"`
+	Start       sql.NullTime `db:"start"`
+	End         sql.NullTime `db:"end"`
+	HostID      string       `db:"host_id"`
+	Location    string       `db:"location"`
+	Description string       `db:"description"`
+	IsConfirmed bool         `db:"is_confirmed"`
+	CreatedAt   time.Time    `db:"created_at"`
 }
 
 func (repo *Repository) GetEvents() ([]Event, error) {
@@ -29,14 +30,8 @@ func (repo *Repository) GetEvents() ([]Event, error) {
 }
 
 func (repo *Repository) CreateEvent(event Event) error {
-	var err error
-	if event.Start == nil || event.End == nil {
-		_, err = repo.db.Exec("INSERT INTO events (id, title, host_id, location, description, is_confirmed) VALUES (?, ?, ?, ?, ?, ?)",
-			event.ID, event.Title, event.HostID, event.Location, event.Description, event.IsConfirmed)
-	} else {
-		_, err = repo.db.Exec("INSERT INTO events (id, title, start, end, host_id, description, is_confirmed) VALUES (?, ?, ?, ?, ?, ?, ?)",
-			event.ID, event.Title, event.Start, event.End, event.HostID, event.Description, event.IsConfirmed)
-	}
+	_, err := repo.db.Exec("INSERT INTO events (id, title, start, end, host_id, location, description, is_confirmed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		event.ID, event.Title, event.Start, event.End, event.HostID, event.Location, event.Description, event.IsConfirmed)
 	return err
 }
 
