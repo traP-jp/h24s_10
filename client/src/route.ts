@@ -9,5 +9,10 @@ export const router = createRouter({
       name: "Home",
       component: HelloWorld,
     },
+    {
+      path: "/create-event",
+      name: "CreateEvent",
+      component: () => import("./components/CreateEvent/CreateEvent.vue"),
+    },
   ],
 });

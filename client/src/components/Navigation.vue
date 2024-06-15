@@ -3,7 +3,8 @@
 <template>
   <div>
     <div>
-      <RouterLink to="/">Home</RouterLink>
+      <RouterLink to="/">Home</RouterLink>|
+      <RouterLink to="/create-event">Create Event</RouterLink>
     </div>
   </div>
 </template>
