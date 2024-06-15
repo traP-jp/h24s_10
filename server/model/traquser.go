@@ -19,7 +19,7 @@ type (
 
 type UserMap map[string]User
 
-func (r2 Repository2) GetUsers(ctx context.Context) ([]User, error) {
+func (r2 *Repository2) GetUsers(ctx context.Context) ([]User, error) {
 	resp, _, err := r2.apiClient.UserApi.GetUsers(ctx).Execute()
 	if err != nil {
 		log.Printf("get user error: %v", err)
@@ -39,7 +39,7 @@ func (r2 Repository2) GetUsers(ctx context.Context) ([]User, error) {
 	return UserList, nil
 }
 
-func (r2 Repository2) GetUsersMap(ctx context.Context) (UserMap, error) {
+func (r2 *Repository2) GetUsersMap(ctx context.Context) (UserMap, error) {
 	resp, _, err := r2.apiClient.UserApi.GetUsers(ctx).Execute()
 	if err != nil {
 		log.Printf("get user map error: %v", err)
