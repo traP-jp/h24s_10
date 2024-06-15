@@ -37,6 +37,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetEventResponse"
+  /events/{eventID}/confirm:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    patch:
+      tags:
+        - event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchEventConfirmRequest"
+      responses:
+        204:
+          description: OK
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -192,6 +206,16 @@ components:
       required:
         - start
         - end
+    PatchEventConfirmRequest:
+      type: object
+      properties:
+        isConfirmed:
+          type: boolean
+        eventDateOptionID:
+          type: string
+          format: uuid
+      required:
+        - isConfirmed
     PostEventApplicantsRequest:
       type: object
       properties:
@@ -214,15 +238,7 @@ components:
     GetEventApplicantsResponse:
       type: array
       items:
-        type: object
-        properties:
-          traqID:
-            type: string
-          dateOptionIDs:
-            type: array
-            items:
-              type: string
-              format: uuid
+        $ref: "#/components/schemas/applicant"
     GetTraQGroupsResponse:
       type: array
       items:
@@ -247,6 +263,16 @@ components:
         - id
         - start
         - end
+    applicant:
+      type: object
+      properties:
+        traqID:
+          type: string
+        dateOptionIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
     traQUser:
       type: object
       properties:

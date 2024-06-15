@@ -15,12 +15,12 @@ type EventDate struct {
 }
 
 func (repo *Repository) GetEventDates(eventID uuid.UUID) ([]EventDate, error) {
-	eventDateList := []EventDate{}
-	err := repo.db.Select(&eventDateList, "SELECT * FROM `event_dates` WHERE `event_id` = ?", eventID)
+	eventDates := make([]EventDate, 0)
+	err := repo.db.Select(&eventDates, "SELECT * FROM event_dates WHERE event_id = ?", eventID)
 	if err != nil {
 		return nil, err
 	}
-	return eventDateList, nil
+	return eventDates, nil
 }
 
 // CreateEventDates creates event dates. This function uses a bulk insert.
