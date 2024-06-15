@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -49,7 +50,7 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	// eventIDがeventDateIDのそれぞれの値が齟齬がないか確認
 	err := h.repo.ValidateEventDateIDsFromEventID(eventID, *req.DateOptionIDs)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid event ID and DateOptionIDs: %v", err))
 	}
 
 	traQID := ctx.Get(traQIDKey).(string)
@@ -57,7 +58,7 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	// traqIDがeventDateIDのそれぞれの値が齟齬がないか確認
 	err = h.repo.ValidateEventDateIDsFromTraqID(traQID, *req.DateOptionIDs)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already exists traqID and DateOptionIDs: %v", err))
 	}
 
 	dateVotes := make([]model.DateVote, 0, len(*req.DateOptionIDs))
