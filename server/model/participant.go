@@ -14,7 +14,12 @@ type Participant struct {
 }
 
 func (repo *Repository) GetParticipants(eventID uuid.UUID) ([]Participant, error) {
-	return nil, errors.New("not implemented")
+	participants := make([]Participant, 0)
+	err := repo.db.Select(&participants, "SELECT * FROM participants WHERE event_id = ?", eventID)
+	if err != nil {
+		return nil, err
+	}
+	return participants, nil
 }
 
 func (repo *Repository) CreateParticipant(participant Participant) error {
