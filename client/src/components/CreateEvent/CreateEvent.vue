@@ -40,6 +40,7 @@ const groups = computed<Invitee[]>(
 
 const eventName = ref("");
 const eventDescription = ref("");
+const location = ref("");
 const invitees = ref<Invitee[]>([]);
 
 const userSearchFilter: FilterFunction = (_, query, item?) => {
@@ -80,6 +81,7 @@ const createEvent = async () => {
   await postEvent({
     data: {
       title: eventName.value,
+      location: location.value,
       description: eventDescription.value,
       dateOptions: Dates.value.map(({ startDate, endDate }) => ({
         start: startDate.toISOString(),
@@ -109,6 +111,9 @@ const createEvent = async () => {
 
   <h2 class="text-h4 text-left">概要</h2>
   <v-textarea v-model="eventDescription" label="イベント概要" />
+
+  <h2 class="text-h4 text-left">開催場所</h2>
+  <v-textarea v-model="location" label="開催場所" />
   <h2 class="text-h4 text-left">招待者</h2>
 
   <v-autocomplete
