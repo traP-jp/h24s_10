@@ -283,6 +283,8 @@ components:
           type: string
         description:
           type: string
+        location:
+          type: string
         isConfirmed:
           type: boolean
         date:
