@@ -20,7 +20,8 @@ const hostEvents = computed(
 );
 
 const answeredEvents = computed(
-  () => eventsMe?.value?.data.filter((v) => v.isAnswered) ?? []
+  () =>
+    eventsMe?.value?.data.filter((v) => v.isAnswered && !v.isConfirmed) ?? []
 );
 
 const confirmedEvents = computed(
