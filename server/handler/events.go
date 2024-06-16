@@ -419,15 +419,24 @@ func editGroupName(name string, groupsMap map[string]traqclient.Group) (string, 
 	if utf8.RuneCountInString(string(runeName)) > 30 {
 		runeName = runeName[:30]
 	}
-	if _, ok := groupsMap[string(runeName)]; ok {
-		return string(runeName), nil
-	} else {
-		for i := range 10 {
-			runeName[29] = rune('0' + i%10)
-			if _, ok := groupsMap[string(runeName)]; ok {
-				return string(runeName), nil
-			}
-		}
-		return "", fmt.Errorf("group name error")
+	originalName := string(runeName)
+	// 既存のグループ名でない場合、元の名前を返す
+	if _, ok := groupsMap[originalName]; !ok {
+		return originalName, nil
 	}
+	// 新しいグループ名を生成する
+	for i := 0; i < 10; i++ {
+		if len(runeName) < 30 {
+			// runeNameが30文字未満の場合は末尾に追加
+			runeName = append(runeName, rune('0'+i%10))
+		} else {
+			// それ以外の場合は最後の文字を変更
+			runeName[29] = rune('0' + i%10)
+		}
+		newName := string(runeName)
+		if _, ok := groupsMap[newName]; !ok {
+			return newName, nil
+		}
+	}
+	return "", fmt.Errorf("group name error")
 }
