@@ -6,13 +6,14 @@ import {
   useGetEventsEventID,
   useGetEventsEventIDApplicants,
   useGetMe,
-  usePatchEventsEventIDConfirm,
+  usePostEventsEventIDConfirm,
 } from "../generated/api/openapi";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import { mdiDotsHorizontal } from "@mdi/js";
 
 const route = useRoute();
+const router = useRouter();
 
 const id = Array.isArray(route.params.id)
   ? route.params.id[0]
@@ -21,7 +22,7 @@ const id = Array.isArray(route.params.id)
 const { data: eventsAxios } = useGetEventsEventID(id);
 const { data: eventsAxiosApplicants } = useGetEventsEventIDApplicants(id);
 const { data: me } = useGetMe();
-const { mutateAsync: postApplicants } = usePatchEventsEventIDConfirm();
+const { mutateAsync: postEventsEventIDConfirm } = usePostEventsEventIDConfirm();
 
 const event = computed(() => eventsAxios.value?.data);
 
@@ -31,13 +32,21 @@ watch(event, () => {
   dateID.value = eventsAxios.value?.data?.dateOptions?.[0]?.id ?? "";
 });
 
-const postDateOptionIDs = () => {
+const postDateOptionIDs = async () => {
   console.log(dateID.value);
   console.log(
     eventsAxiosApplicants.value?.data.filter((v) =>
       v.dateOptionIDs?.includes(dateID.value)
     )
   );
+  await postEventsEventIDConfirm({
+    eventID: id,
+    data: {
+      isConfirmed: true,
+      eventDateOptionID: dateID.value,
+    },
+  });
+  router.push("/");
 };
 </script>
 

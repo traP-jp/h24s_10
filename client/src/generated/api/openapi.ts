@@ -81,7 +81,11 @@ export interface PostEventApplicantsRequest {
   dateOptionIDs: string[];
 }
 
-export interface PatchEventConfirmRequest {
+export interface PostEventConfirmResponse {
+  group: TraQGroup;
+}
+
+export interface PostEventConfirmRequest {
   eventDateOptionID?: string;
   isConfirmed: boolean;
 }
@@ -99,6 +103,7 @@ export interface GetEventResponse {
   hostID: string;
   id: string;
   isConfirmed: boolean;
+  location?: string;
   title: string;
 }
 
@@ -136,6 +141,7 @@ export type PostEventRequestDateOptionsItem = {
 export interface PostEventRequest {
   dateOptions: PostEventRequestDateOptionsItem[];
   description: string;
+  location?: string;
   targets: string[];
   title: string;
 }
@@ -529,32 +535,32 @@ export const useGetEventsEventID = <TData = Awaited<ReturnType<typeof getEventsE
 
 
 
-export const patchEventsEventIDConfirm = (
+export const postEventsEventIDConfirm = (
     eventID: MaybeRef<string>,
-    patchEventConfirmRequest: MaybeRef<PatchEventConfirmRequest>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    postEventConfirmRequest: MaybeRef<PostEventConfirmRequest>, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<PostEventConfirmResponse>> => {
     eventID = unref(eventID);
-patchEventConfirmRequest = unref(patchEventConfirmRequest);
-    return axios.patch(
+postEventConfirmRequest = unref(postEventConfirmRequest);
+    return axios.post(
       `/api/events/${eventID}/confirm`,
-      patchEventConfirmRequest,options
+      postEventConfirmRequest,options
     );
   }
 
 
 
-export const getPatchEventsEventIDConfirmMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchEventsEventIDConfirm>>, TError,{eventID: string;data: PatchEventConfirmRequest}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof patchEventsEventIDConfirm>>, TError,{eventID: string;data: PatchEventConfirmRequest}, TContext> => {
+export const getPostEventsEventIDConfirmMutationOptions = <TError = AxiosError<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIDConfirm>>, TError,{eventID: string;data: PostEventConfirmRequest}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIDConfirm>>, TError,{eventID: string;data: PostEventConfirmRequest}, TContext> => {
 const {mutation: mutationOptions, axios: axiosOptions} = options ?? {};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchEventsEventIDConfirm>>, {eventID: string;data: PatchEventConfirmRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postEventsEventIDConfirm>>, {eventID: string;data: PostEventConfirmRequest}> = (props) => {
           const {eventID,data} = props ?? {};
 
-          return  patchEventsEventIDConfirm(eventID,data,axiosOptions)
+          return  postEventsEventIDConfirm(eventID,data,axiosOptions)
         }
 
         
@@ -562,20 +568,20 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?? {};
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PatchEventsEventIDConfirmMutationResult = NonNullable<Awaited<ReturnType<typeof patchEventsEventIDConfirm>>>
-    export type PatchEventsEventIDConfirmMutationBody = PatchEventConfirmRequest
-    export type PatchEventsEventIDConfirmMutationError = AxiosError<unknown>
+    export type PostEventsEventIDConfirmMutationResult = NonNullable<Awaited<ReturnType<typeof postEventsEventIDConfirm>>>
+    export type PostEventsEventIDConfirmMutationBody = PostEventConfirmRequest
+    export type PostEventsEventIDConfirmMutationError = AxiosError<unknown>
 
-    export const usePatchEventsEventIDConfirm = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchEventsEventIDConfirm>>, TError,{eventID: string;data: PatchEventConfirmRequest}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostEventsEventIDConfirm = <TError = AxiosError<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIDConfirm>>, TError,{eventID: string;data: PostEventConfirmRequest}, TContext>, axios?: AxiosRequestConfig}
 ): UseMutationReturnType<
-        Awaited<ReturnType<typeof patchEventsEventIDConfirm>>,
+        Awaited<ReturnType<typeof postEventsEventIDConfirm>>,
         TError,
-        {eventID: string;data: PatchEventConfirmRequest},
+        {eventID: string;data: PostEventConfirmRequest},
         TContext
       > => {
 
-      const mutationOptions = getPatchEventsEventIDConfirmMutationOptions(options);
+      const mutationOptions = getPostEventsEventIDConfirmMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -791,6 +797,59 @@ export const useGetEventsEventIDApplicants = <TData = Awaited<ReturnType<typeof 
   ): UseQueryReturnType<TData, TError> & { queryKey: QueryKey } => {
 
   const queryOptions = getGetEventsEventIDApplicantsQueryOptions(eventID,options)
+
+  const query = useQuery(queryOptions) as UseQueryReturnType<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = unref(queryOptions).queryKey as QueryKey;
+
+  return query;
+}
+
+
+
+
+export const getEventsEventIDCalendar = (
+    eventID: MaybeRef<string>, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<string>> => {
+    eventID = unref(eventID);
+    return axios.get(
+      `/api/events/${eventID}/calendar`,options
+    );
+  }
+
+
+export const getGetEventsEventIDCalendarQueryKey = (eventID: MaybeRef<string>,) => {
+    return ['api','events',eventID,'calendar'] as const;
+    }
+
+    
+export const getGetEventsEventIDCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIDCalendar>>, TError = AxiosError<unknown>>(eventID: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIDCalendar>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  getGetEventsEventIDCalendarQueryKey(eventID);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIDCalendar>>> = ({ signal }) => getEventsEventIDCalendar(eventID, { signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(eventID))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIDCalendar>>, TError, TData> 
+}
+
+export type GetEventsEventIDCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIDCalendar>>>
+export type GetEventsEventIDCalendarQueryError = AxiosError<unknown>
+
+export const useGetEventsEventIDCalendar = <TData = Awaited<ReturnType<typeof getEventsEventIDCalendar>>, TError = AxiosError<unknown>>(
+ eventID: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIDCalendar>>, TError, TData>>, axios?: AxiosRequestConfig}
+
+  ): UseQueryReturnType<TData, TError> & { queryKey: QueryKey } => {
+
+  const queryOptions = getGetEventsEventIDCalendarQueryOptions(eventID,options)
 
   const query = useQuery(queryOptions) as UseQueryReturnType<TData, TError> & { queryKey: QueryKey };
 

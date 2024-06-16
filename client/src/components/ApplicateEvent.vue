@@ -29,14 +29,14 @@ watch(event, () => {
 });
 
 const comment = ref("");
-const postDateOptionIDs = () => {
+const postDateOptionIDs = async () => {
   console.log({
     comment: "",
     dateOptionIDs: dateOptionIDs.value.flatMap((v, i) =>
       v ? [event.value?.dateOptions?.[i]?.id ?? ""] : []
     ),
   });
-  postApplicants({
+  await postApplicants({
     eventID: id,
     data: {
       comment: comment.value,
@@ -45,6 +45,7 @@ const postDateOptionIDs = () => {
       ),
     },
   });
+  router.push("/");
 };
 </script>
 
