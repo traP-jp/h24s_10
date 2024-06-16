@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@mdi/font": "^7.4.47"
+  },
+  "devDependencies": {
+    "@mdi/js": "^7.4.47"
   }
 }
