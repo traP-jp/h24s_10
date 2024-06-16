@@ -104,17 +104,21 @@ paths:
   /events/{eventID}/confirm:
     parameters:
       - $ref: "#/components/parameters/eventID"
-    patch:
+    post:
       tags:
         - event
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchEventConfirmRequest"
+              $ref: "#/components/schemas/PostEventConfirmRequest"
       responses:
-        204:
+        200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostEventConfirmResponse"
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -335,7 +339,7 @@ components:
       required:
         - start
         - end
-    PatchEventConfirmRequest:
+    PostEventConfirmRequest:
       type: object
       properties:
         isConfirmed:
@@ -345,6 +349,13 @@ components:
           format: uuid
       required:
         - isConfirmed
+    PostEventConfirmResponse:
+      type: object
+      properties:
+        group:
+          $ref: "#/components/schemas/traQGroup"
+      required:
+        - group
     PostEventApplicantsRequest:
       type: object
       properties:

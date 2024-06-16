@@ -80,17 +80,22 @@ type GetTraQGroupsResponse = []TraQGroup
 // GetTraQUsersResponse defines model for GetTraQUsersResponse.
 type GetTraQUsersResponse = []TraQUser
 
-// PatchEventConfirmRequest defines model for PatchEventConfirmRequest.
-type PatchEventConfirmRequest struct {
-	EventDateOptionID *openapi_types.UUID `json:"eventDateOptionID,omitempty"`
-	IsConfirmed       bool                `json:"isConfirmed"`
-}
-
 // PostEventApplicantsRequest defines model for PostEventApplicantsRequest.
 type PostEventApplicantsRequest struct {
 	// Comment 何かコメントがあれば
 	Comment       string               `json:"comment"`
 	DateOptionIDs []openapi_types.UUID `json:"dateOptionIDs"`
+}
+
+// PostEventConfirmRequest defines model for PostEventConfirmRequest.
+type PostEventConfirmRequest struct {
+	EventDateOptionID *openapi_types.UUID `json:"eventDateOptionID,omitempty"`
+	IsConfirmed       bool                `json:"isConfirmed"`
+}
+
+// PostEventConfirmResponse defines model for PostEventConfirmResponse.
+type PostEventConfirmResponse struct {
+	Group TraQGroup `json:"group"`
 }
 
 // PostEventRequest defines model for PostEventRequest.
@@ -159,8 +164,8 @@ type PostEventsJSONRequestBody = PostEventRequest
 // PostEventsEventIDApplicantsJSONRequestBody defines body for PostEventsEventIDApplicants for application/json ContentType.
 type PostEventsEventIDApplicantsJSONRequestBody = PostEventApplicantsRequest
 
-// PatchEventsEventIDConfirmJSONRequestBody defines body for PatchEventsEventIDConfirm for application/json ContentType.
-type PatchEventsEventIDConfirmJSONRequestBody = PatchEventConfirmRequest
+// PostEventsEventIDConfirmJSONRequestBody defines body for PostEventsEventIDConfirm for application/json ContentType.
+type PostEventsEventIDConfirmJSONRequestBody = PostEventConfirmRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -186,8 +191,8 @@ type ServerInterface interface {
 	// (POST /events/{eventID}/applicants)
 	PostEventsEventIDApplicants(ctx echo.Context, eventID EventID) error
 
-	// (PATCH /events/{eventID}/confirm)
-	PatchEventsEventIDConfirm(ctx echo.Context, eventID EventID) error
+	// (POST /events/{eventID}/confirm)
+	PostEventsEventIDConfirm(ctx echo.Context, eventID EventID) error
 
 	// (GET /events/{eventID}/participants)
 	GetEventsEventIDParticipants(ctx echo.Context, eventID EventID) error
@@ -306,8 +311,8 @@ func (w *ServerInterfaceWrapper) PostEventsEventIDApplicants(ctx echo.Context) e
 	return err
 }
 
-// PatchEventsEventIDConfirm converts echo context to params.
-func (w *ServerInterfaceWrapper) PatchEventsEventIDConfirm(ctx echo.Context) error {
+// PostEventsEventIDConfirm converts echo context to params.
+func (w *ServerInterfaceWrapper) PostEventsEventIDConfirm(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "eventID" -------------
 	var eventID EventID
@@ -318,7 +323,7 @@ func (w *ServerInterfaceWrapper) PatchEventsEventIDConfirm(ctx echo.Context) err
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PatchEventsEventIDConfirm(ctx, eventID)
+	err = w.Handler.PostEventsEventIDConfirm(ctx, eventID)
 	return err
 }
 
@@ -425,7 +430,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)
-	router.PATCH(baseURL+"/events/:eventID/confirm", wrapper.PatchEventsEventIDConfirm)
+	router.POST(baseURL+"/events/:eventID/confirm", wrapper.PostEventsEventIDConfirm)
 	router.GET(baseURL+"/events/:eventID/participants", wrapper.GetEventsEventIDParticipants)
 	router.GET(baseURL+"/events/:eventID/targets", wrapper.GetEventsEventIDTargets)
 	router.GET(baseURL+"/me", wrapper.GetMe)
