@@ -24,7 +24,7 @@ func TraQIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // DevTraQIDMiddleware is a middleware for development. It sets a fixed traQ ID "dev-traq-id" to the context.
 func DevTraQIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		c.Set(traQIDKey, "dev-traq-id")
+		c.Set(traQIDKey, "Luftalian")
 		return next(c)
 	}
 }

@@ -231,16 +231,27 @@ func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventI
 		return echo.NewHTTPError(http.StatusForbidden, "you are not the host of this event")
 	}
 
-	event.IsConfirmed = req.IsConfirmed
+	// event.IsConfirmed = req.IsConfirmed
 
-	if req.IsConfirmed {
-		if req.EventDateOptionID == nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "event_date_option_id is required")
-		}
-		err = h.makeConfirmed(eventID, *req.EventDateOptionID, event)
-	} else {
-		err = h.makeUnconfirmed(event)
+	// if req.IsConfirmed {
+	// 	if req.EventDateOptionID == nil {
+	// 		return echo.NewHTTPError(http.StatusBadRequest, "event_date_option_id is required")
+	// 	}
+	// 	err = h.makeConfirmed(eventID, *req.EventDateOptionID, event)
+	// } else {
+	// 	err = h.makeUnconfirmed(event)
+	// }
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusInternalServerError, err)
+	// }
+
+	// participantsを取得
+	participants, err := h.repo.GetParticipants(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+
+	_, err = h.client.CreateUserGroup(ctx.Request().Context(), event.Title+"asdaa", event.Description, "あのにます", event.HostID, participants)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

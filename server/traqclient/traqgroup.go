@@ -2,9 +2,11 @@ package traqclient
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/traP-jp/h24s_10/model"
 	"github.com/traPtitech/go-traq"
 )
 
@@ -56,4 +58,78 @@ func (c *Client) GetUserGroups(ctx context.Context) ([]Group, error) {
 		})
 	}
 	return GroupList, nil
+}
+
+func (c *Client) CreateUserGroup(ctx context.Context, name string, description string, groupType string, adminID string, participants []model.Participant) (Group, error) {
+	fmt.Println("CreateUserGroup")
+	if len(participants) == 0 || len(participants) == 1 {
+		log.Println("No participants")
+		return Group{}, nil
+	}
+	fmt.Println("participants: ", participants)
+
+	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
+	postUserGroupRequest := *traq.NewPostUserGroupRequest(
+		"naasdfasdfasfaame",
+		description,
+		groupType,
+	)
+
+	fmt.Println("postUserGroupRequest: ", postUserGroupRequest)
+
+	resp, _, err := c.apiClient.GroupApi.CreateUserGroup(ctx).PostUserGroupRequest(postUserGroupRequest).Execute()
+	if err != nil {
+		fmt.Printf("create user group error: %v", err)
+		fmt.Printf("title: %v", resp.Name)
+		return Group{}, err
+	}
+
+	fmt.Println("resp: ", resp)
+
+	admin, err := c.GetUser(ctx, adminID)
+	if err != nil {
+		fmt.Printf("get user error: %v", err)
+		return Group{}, err
+	}
+
+	postUserGroupAdminRequest := *traq.NewPostUserGroupAdminRequest(admin.Id)
+	_, err = c.apiClient.GroupApi.AddUserGroupAdmin(ctx, resp.Id).PostUserGroupAdminRequest(postUserGroupAdminRequest).Execute()
+	if err != nil {
+		fmt.Printf("add user group admin error: %v", err)
+		return Group{}, err
+	}
+
+	// fmt.Println("userGroupAdmin: ", postUserGroupAdminRequest)
+
+	userGroupMembers := make([]UserGroupMember, 0, len(participants))
+	for _, participant := range participants {
+		user, err := c.GetUser(ctx, participant.TraQID)
+		if err != nil {
+			fmt.Printf("get user error: %v", err)
+			return Group{}, err
+		}
+		userGroupMember := *traq.NewUserGroupMember(user.Id, "")
+		_, err = c.apiClient.GroupApi.AddUserGroupMember(ctx, resp.Id).UserGroupMember(userGroupMember).Execute()
+		if err != nil {
+			fmt.Printf("add user group member error: %v", err)
+			return Group{}, err
+		}
+		userGroupMembers = append(userGroupMembers, UserGroupMember{
+			Id:   participant.TraQID,
+			Role: "",
+		})
+		fmt.Println("userGroupMember: ", userGroupMember)
+	}
+	return Group{
+		Id:          resp.Id,
+		Name:        resp.Name,
+		Description: resp.Description,
+		Type:        resp.Type,
+		Icon:        resp.Icon,
+		Members:     userGroupMembers,
+		CreatedAt:   resp.CreatedAt,
+		UpdatedAt:   resp.UpdatedAt,
+		Admins:      resp.Admins,
+	}, nil
+
 }
