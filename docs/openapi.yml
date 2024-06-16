@@ -49,6 +49,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostEventResponse"
+  /events/me:
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventMeResponses"
   /events/me/participate:
     get:
       description: 自分の参加するイベント(isConfirmedがtrueのものだけ)
@@ -61,17 +72,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetMyParticipateEventsResponse"
-  /events/me:
-    get:
-      tags:
-        - event
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventMeResponses"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
