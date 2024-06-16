@@ -43,7 +43,12 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	dateOptions := make(map[string][]uuid.UUID)
+	applicants, err := h.repo.GetApplicants(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	dateOptions := make(map[string][]uuid.UUID, len(applicants))
 	for _, date := range eventDates {
 		dateVotes, err := h.repo.GetEventDateVotes(date.ID)
 		if err != nil {
@@ -56,11 +61,22 @@ func (h *Handler) GetEventsEventIDApplicants(ctx echo.Context, eventID api.Event
 	}
 
 	res := make(api.GetEventApplicantsResponse, 0, len(dateOptions))
-	for traQID, dateIDs := range dateOptions {
+	for _, applicant := range applicants {
+		comment, err := h.repo.GetComment(eventID, applicant.TraQID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+
+		dateOptionIDs, ok := dateOptions[applicant.TraQID]
+		if !ok {
+			dateOptionIDs = make([]uuid.UUID, 0)
+		}
 		res = append(res, api.Applicant{
-			TraqID:        &traQID,
-			DateOptionIDs: &dateIDs,
+			TraqID:        applicant.TraQID,
+			DateOptionIDs: dateOptionIDs,
+			Comment:       comment.Content,
 		})
+
 	}
 	return ctx.JSON(http.StatusOK, res)
 }
@@ -71,11 +87,9 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if len(*req.DateOptionIDs) == 0 {
-		return ctx.NoContent(http.StatusOK)
-	}
+
 	// eventIDがeventDateIDのそれぞれの値が齟齬がないか確認
-	err := h.repo.ValidateEventDateIDsFromEventID(eventID, *req.DateOptionIDs)
+	err := h.repo.ValidateEventDateIDsFromEventID(eventID, req.DateOptionIDs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid event ID and DateOptionIDs: %v", err))
 	}
@@ -83,13 +97,26 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	traQID := ctx.Get(traQIDKey).(string)
 
 	// traqIDがeventDateIDのそれぞれの値が齟齬がないか確認
-	err = h.repo.ValidateEventDateIDsFromTraqID(traQID, *req.DateOptionIDs)
+	err = h.repo.ValidateEventDateIDsFromTraqID(traQID, req.DateOptionIDs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already exists traqID and DateOptionIDs: %v", err))
 	}
 
-	dateVotes := make([]model.DateVote, 0, len(*req.DateOptionIDs))
-	for _, dateOption := range *req.DateOptionIDs {
+	applicantID, err := uuid.NewV7()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	err = h.repo.CreateApplicant(model.Applicant{
+		ID:      applicantID,
+		EventID: eventID,
+		TraQID:  traQID,
+	})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	dateVotes := make([]model.DateVote, 0, len(req.DateOptionIDs))
+	for _, dateOption := range req.DateOptionIDs {
 		id, err := uuid.NewV7()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -104,6 +131,17 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+
+	commentID, err := uuid.NewV7()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	h.repo.CreateComment(model.Comment{
+		ID:      commentID,
+		EventID: eventID,
+		TraQID:  traQID,
+		Content: req.Comment,
+	})
 
 	return ctx.NoContent(http.StatusCreated)
 }
