@@ -1,58 +1,53 @@
 <script setup lang="ts">
-import{ ref } from "vue";
-import { format, parseISO, startOfDay } from "date-fns";
+import { computed, ref } from "vue";
 import ApplicateEvent from "./ApplicateEvent.vue";
 import DecideDate from "./DecideDate.vue";
 
-type DateOption = {
-  dateOptionID: string;
-  start: Date;
-  end: Date;
-}
-type EventDetail = {
-  traqID: string;
-  title: string;
-  organizer: string;
-  description: string;
-  isConfirmed: boolean;
-  dateOptions: DateOption[];
-}
+import { useRoute } from "vue-router";
+import { watch } from "vue";
+import { useGetEventsEventID, useGetMe } from "../generated/api/openapi";
 
-// exsample event
-const eventDetail: EventDetail = {
-  traqID: "eventID",
-  title: "eventTitle",
-  organizer: "ogu_kazemiya",
-  description: "eventDescription",
-  isConfirmed: false,
-  dateOptions: [
-    { dateOptionID: "dateOptionID0", start: new Date(), end: new Date() },
-    { dateOptionID: "dateOptionID1", start: new Date(), end: new Date() },
-  ],
-}
+const route = useRoute();
 
-const isOrganizer = ref<boolean>(true)
-const isDecidingMode = ref<boolean>(true)
+const id = Array.isArray(route.params.id)
+  ? route.params.id[0]
+  : route.params.id;
+
+const { data: eventsAxios } = useGetEventsEventID(id);
+const { data: me } = useGetMe();
+
+const event = computed(() => eventsAxios.value?.data);
+
+const dateOptionIDs = ref<boolean[]>([]);
+
+watch(event, () => {
+  dateOptionIDs.value = event.value?.dateOptions?.map((v) => false) ?? [];
+});
+
+const isHost = ref<boolean>(event.value?.hostID === me.value?.data.traQID);
+const isDecidingMode = computed<boolean>(
+  () => isHost.value && !event.value?.isConfirmed
+);
 </script>
 
 <template>
   <div>
-    <h1>イベント詳細</h1>
+    <h1>{{ event?.title }}</h1>
     <div>
-      <h2>{{ eventDetail.title }}</h2>
       <div>
-        by {{ eventDetail.organizer }}
-        <img 
-          :src="`https://q.trap.jp/api/v3/public/icon/${eventDetail.organizer}`"
-          :alt="`${eventDetail.organizer}'s icon'`"
-          height="25" width="25" />
+        by {{ event?.hostID }}
+        <img
+          :src="`https://q.trap.jp/api/v3/public/icon/${event?.hostID}`"
+          :alt="`${event?.hostID}'s icon'`"
+          height="25"
+          width="25"
+        />
       </div>
-      <div>{{ eventDetail.description }}</div>
-      <ApplicateEvent v-if="!isDecidingMode" :eventDetail="eventDetail" />
-      <DecideDate v-if="isDecidingMode" :eventDetail="eventDetail" />
+      <div>{{ event?.description }}</div>
+      <ApplicateEvent v-if="!isDecidingMode" />
+      <DecideDate v-if="isDecidingMode" />
     </div>
   </div>
 </template>
 
-<style>
-</style>
+<style></style>

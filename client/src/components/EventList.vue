@@ -44,7 +44,7 @@ const stringSlice = (str: string, length: number) => {
           :key="event.event_id"
           class="ma-5"
           link
-          @click="$router.push(`/events/${event.event_id}/applicate-event`)"
+          @click="$router.push(`/events/${event.event_id}/detail`)"
           :append-icon="mdiChevronRight"
           :title="event.title"
         >
@@ -60,7 +60,7 @@ const stringSlice = (str: string, length: number) => {
           :key="event.event_id"
           class="ma-5"
           link
-          @click="router.push(`/events/${event.event_id}/applicate-event`)"
+          @click="router.push(`/events/${event.event_id}/detail`)"
           :append-icon="mdiChevronRight"
           :title="event.title"
         >
@@ -76,7 +76,7 @@ const stringSlice = (str: string, length: number) => {
           :key="event.event_id"
           class="ma-5"
           link
-          @click="router.push(`/events/${event.event_id}`)"
+          @click="router.push(`/events/${event.event_id}/detail`)"
           :append-icon="mdiChevronRight"
           :title="event.title"
         >
@@ -92,7 +92,7 @@ const stringSlice = (str: string, length: number) => {
           :key="event.event_id"
           class="ma-5"
           link
-          @click="router.push(`/events/${event.event_id}`)"
+          @click="router.push(`/events/${event.event_id}/detail`)"
           :append-icon="mdiChevronRight"
           :title="event.title"
         >

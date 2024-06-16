@@ -8,12 +8,12 @@ const router = useRouter();
 <template>
   <div>
     <v-app-bar color="primary">
-      <v-app-title class="mx-6">hoge</v-app-title>
+      <v-app-bar-title class="mx-6">予定決めアプリ</v-app-bar-title>
       <template v-slot:append>
         <v-btn @click="router.push('/')">
           <v-icon :icon="mdiHome" />
         </v-btn>
-        <v-btn variant="text" @click="router.push({ name: 'Events' })"
+        <v-btn variant="text" @click="router.push('/events')"
           >イベント一覧</v-btn
         >
         <v-btn variant="text" @click="router.push('/create-event')"

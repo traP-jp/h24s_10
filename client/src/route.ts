@@ -19,17 +19,18 @@ export const router = createRouter({
     {
       path: "/events",
       name: "Events",
-      component: EventList,
+      component: () => import("./components/EventList.vue"),
+    },
+
+    {
+      path: "/events/:id/detail",
+      name: "EventDetail",
+      component: () => import("./components/EventDetail.vue"),
     },
     {
       path: "/events/:id",
-      name: "EventDetail",
+      name: "Event",
       component: Event,
-    },
-    {
-      path: "/events/:id/applicate-event",
-      name: "ApplicateEvent",
-      component: ApplicateEvent,
     },
     {
       path: "/create-event",

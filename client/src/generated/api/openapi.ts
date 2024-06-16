@@ -46,8 +46,9 @@ export interface TraQGroup {
 }
 
 export interface Applicant {
-  dateOptionIDs?: string[];
-  traqID?: string;
+  comment: string;
+  dateOptionIDs: string[];
+  traqID: string;
 }
 
 export interface DateOption {
