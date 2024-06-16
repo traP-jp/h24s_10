@@ -303,6 +303,8 @@ components:
           type: string
         description:
           type: string
+        location:
+          type: string
         hostID:
           type: string
           description: traQ ID

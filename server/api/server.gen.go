@@ -51,6 +51,7 @@ type GetEventResponse struct {
 	HostID      string             `json:"hostID"`
 	Id          openapi_types.UUID `json:"id"`
 	IsConfirmed bool               `json:"isConfirmed"`
+	Location    *string            `json:"location,omitempty"`
 	Title       string             `json:"title"`
 }
 

@@ -237,9 +237,14 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 			Start: dateOption.Start,
 		})
 	}
+	var location *string
+	if event.Location != "" {
+		location = &event.Location
+	}
 	getEventsByEventIDResponse := api.GetEventResponse{
 		DateOptions: dateOptionsResponse,
 		Description: event.Description,
+		Location:    location,
 		Id:          event.ID,
 		IsConfirmed: event.IsConfirmed,
 		Title:       event.Title,
