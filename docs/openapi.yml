@@ -60,6 +60,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EventMeResponses"
+  /events/me/participate:
+    get:
+      description: 自分の参加するイベント(isConfirmedがtrueのものだけ)
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMyParticipateEventsResponse"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -212,6 +224,27 @@ components:
           format: uuid
       required:
         - id
+    GetMyParticipateEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          $ref: "#/components/schemas/DateTimeResponse"
+      required:
+        - id
+        - title
+        - description
+        - date
+    GetMyParticipateEventsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/GetMyParticipateEvent"
     EventMeResponse:
       type: object
       properties:

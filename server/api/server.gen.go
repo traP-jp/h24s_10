@@ -56,6 +56,17 @@ type GetMeResponse struct {
 	TraQID *string `json:"traQID,omitempty"`
 }
 
+// GetMyParticipateEvent defines model for GetMyParticipateEvent.
+type GetMyParticipateEvent struct {
+	Date        DateTimeResponse   `json:"date"`
+	Description string             `json:"description"`
+	Id          openapi_types.UUID `json:"id"`
+	Title       string             `json:"title"`
+}
+
+// GetMyParticipateEventsResponse defines model for GetMyParticipateEventsResponse.
+type GetMyParticipateEventsResponse = []GetMyParticipateEvent
+
 // GetTraQGroupsResponse defines model for GetTraQGroupsResponse.
 type GetTraQGroupsResponse = []TraQGroup
 
@@ -135,6 +146,9 @@ type ServerInterface interface {
 	// (GET /events/me)
 	GetEventsMe(ctx echo.Context) error
 
+	// (GET /events/me/participate)
+	GetEventsMeParticipate(ctx echo.Context) error
+
 	// (GET /events/{eventID})
 	GetEventsEventID(ctx echo.Context, eventID EventID) error
 
@@ -186,6 +200,15 @@ func (w *ServerInterfaceWrapper) GetEventsMe(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetEventsMe(ctx)
+	return err
+}
+
+// GetEventsMeParticipate converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsMeParticipate(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsMeParticipate(ctx)
 	return err
 }
 
@@ -351,6 +374,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/events", wrapper.PostEvents)
 	router.GET(baseURL+"/events/me", wrapper.GetEventsMe)
+	router.GET(baseURL+"/events/me/participate", wrapper.GetEventsMeParticipate)
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)
