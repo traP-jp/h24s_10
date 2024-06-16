@@ -49,6 +49,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostEventResponse"
+  /events/all:
+    get:
+      tags:
+        - event
+      parameters:
+        - in: query
+          name: includePastEvents
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllEventsResponse"
+  /events/me:
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventMeResponses"
+  /events/me/participate:
+    get:
+      description: 自分の参加するイベント(isConfirmedがtrueのものだけ)
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMyParticipateEventsResponse"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -201,6 +240,57 @@ components:
           format: uuid
       required:
         - id
+    GetAllEventsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/getAllEventsElement"
+    GetMyParticipateEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          $ref: "#/components/schemas/DateTimeResponse"
+      required:
+        - id
+        - title
+        - description
+        - date
+    GetMyParticipateEventsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/GetMyParticipateEvent"
+    EventMeResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        isConfirmed:
+          type: boolean
+        isAnswered:
+          type: boolean
+        isHost:
+          type: boolean
+      required:
+        - event_id
+        - title
+        - isConfirmed
+        - isAnswered
+        - isHost
+    EventMeResponses:
+      type: array
+      items:
+        $ref: "#/components/schemas/EventMeResponse"
     GetEventResponse:
       type: object
       properties:
@@ -211,6 +301,9 @@ components:
           type: string
         description:
           type: string
+        hostID:
+          type: string
+          description: traQ ID
         isConfirmed:
           type: boolean
         date:
@@ -220,10 +313,12 @@ components:
           items:
             $ref: "#/components/schemas/dateOption"
       required:
-        - event_id
+        - id
         - title
         - description
-        - status
+        - hostID
+        - isConfirmed
+        - dateOptions
     DateTimeResponse:
       type: object
       properties:
@@ -255,6 +350,12 @@ components:
             type: string
             format: uuid
             description: 日時候補のID
+        comment:
+          type: string
+          description: 何かコメントがあれば
+      required:
+        - dateOptionIDs
+        - comment
     GetEventParticipantsResponse:
       type: array
       items:
@@ -277,6 +378,26 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/traQUser"
+    getAllEventsElement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        isConfirmed:
+          type: boolean
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - isConfirmed
     dateOption:
       type: object
       properties:

@@ -3,8 +3,10 @@ package handler
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
@@ -107,6 +109,111 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, res)
 }
 
+func (h *Handler) GetEventsAll(ctx echo.Context, params api.GetEventsAllParams) error {
+	events, err := h.repo.GetEvents()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	var includePathEvents bool
+	if params.IncludePastEvents != nil {
+		includePathEvents = *params.IncludePastEvents
+	} else {
+		includePathEvents = true
+	}
+
+	res := make(api.GetAllEventsResponse, 0, len(events))
+	for _, event := range events {
+		if !includePathEvents && event.End.Valid && event.End.Time.Before(time.Now()) {
+			continue
+		}
+		e := api.GetAllEventsElement{
+			Id:          event.ID,
+			Title:       event.Title,
+			IsConfirmed: event.IsConfirmed,
+		}
+		if event.Start.Valid && event.End.Valid {
+			e.Start = &event.Start.Time
+			e.End = &event.End.Time
+		}
+		res = append(res, e)
+	}
+
+	return ctx.JSON(http.StatusOK, res)
+}
+
+// (GET /events/me)
+func (h *Handler) GetEventsMe(ctx echo.Context) error {
+	userID := ctx.Get(traQIDKey).(string)
+	// ホストとなっているイベントの取得
+	eventsByHost, err := h.repo.GetEventsByHost(userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	// 回答候補となっているイベントの取得
+	eventsByTarget, err := h.repo.GetEventsByTargetUser(userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	// ホストとなっていないイベントのみに限定
+	removedHostEvent := removeEventHostFromTarget(eventsByHost, eventsByTarget)
+
+	// 回答済みのイベントの取得
+	eventAnsweredStruct, err := h.repo.GetDateVotesByUser(userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	eventAnsweredMap := make(map[uuid.UUID]struct{})
+	for _, e := range eventAnsweredStruct {
+		eventAnsweredMap[e.EventID] = struct{}{}
+		log.Printf("eventAnsweredMap: %v", e.EventID)
+	}
+
+	res := make([]api.EventMeResponse, 0, len(eventsByHost)+len(removedHostEvent))
+	for _, event := range eventsByHost {
+		_, isAnswered := eventAnsweredMap[event.ID]
+		res = append(res, api.EventMeResponse{
+			Description: &event.Description,
+			EventId:     event.ID,
+			IsAnswered:  isAnswered,
+			IsConfirmed: event.IsConfirmed,
+			IsHost:      true,
+			Title:       event.Title,
+		})
+	}
+	for _, event := range removedHostEvent {
+		_, isAnswered := eventAnsweredMap[event.ID]
+		res = append(res, api.EventMeResponse{
+			Description: &event.Description,
+			EventId:     event.ID,
+			IsAnswered:  isAnswered,
+			IsConfirmed: event.IsConfirmed,
+			IsHost:      false,
+			Title:       event.Title,
+		})
+	}
+	return ctx.JSON(http.StatusOK, res)
+}
+
+func removeEventHostFromTarget(hostEvent, targetEvent []model.Event) []model.Event {
+	removedEvent := []model.Event{}
+	for i := 0; i < len(targetEvent); i++ {
+		check := false
+		for j := 0; j < len(hostEvent); j++ {
+			if targetEvent[i].ID == hostEvent[j].ID {
+				check = true
+				break
+			}
+		}
+		if !check {
+			removedEvent = append(removedEvent, targetEvent[i])
+		}
+	}
+	return removedEvent
+}
+
 // (GET /events/{eventID})
 func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error {
 	event, err := h.repo.GetEventByEventID(eventID)
@@ -126,11 +233,12 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 		})
 	}
 	getEventsByEventIDResponse := api.GetEventResponse{
-		DateOptions: &dateOptionsResponse,
+		DateOptions: dateOptionsResponse,
 		Description: event.Description,
-		Id:          &event.ID,
-		IsConfirmed: &event.IsConfirmed,
+		Id:          event.ID,
+		IsConfirmed: event.IsConfirmed,
 		Title:       event.Title,
+		HostID:      event.HostID,
 	}
 	if event.Start.Valid && event.End.Valid {
 		getEventsByEventIDResponse.Date = &api.DateTimeResponse{

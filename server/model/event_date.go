@@ -43,6 +43,10 @@ func (repo *Repository) CreateEventDates(dates []EventDate) error {
 }
 
 func (repo *Repository) ValidateEventDateIDsFromEventID(eventID uuid.UUID, dateIDs []uuid.UUID) error {
+	if len(dateIDs) == 0 {
+		return nil
+	}
+
 	var count int
 	query, args, err := sqlx.In("SELECT COUNT(*) FROM event_dates WHERE event_id = ? AND id IN (?)", eventID, dateIDs)
 	if err != nil {
@@ -61,6 +65,10 @@ func (repo *Repository) ValidateEventDateIDsFromEventID(eventID uuid.UUID, dateI
 }
 
 func (repo *Repository) ValidateEventDateIDsFromTraqID(traQID string, dateIDs []uuid.UUID) error {
+	if len(dateIDs) == 0 {
+		return nil
+	}
+
 	// すでにtraQIDとdateIDsの組み合わせが存在するか確認
 	var count int
 	query, args, err := sqlx.In("SELECT COUNT(*) FROM date_votes WHERE traq_id = ? AND event_date_id IN (?)", traQID, dateIDs)

@@ -40,3 +40,12 @@ func (repo *Repository) CreateEventTargets(targets []EventTarget) error {
 
 	return tx.Commit()
 }
+
+func (repo *Repository) GetEventsByTargetUser(targetUser string) ([]Event, error) {
+	var events []Event
+	err := repo.db.Select(&events, "SELECT * FROM events WHERE id IN (SELECT event_id FROM targets WHERE traq_id = ?)", targetUser)
+	if err != nil {
+		return nil, err
+	}
+	return events, nil
+}

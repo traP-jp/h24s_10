@@ -14,5 +14,7 @@ func (repo *Repository) GetComments(eventID uuid.UUID) ([]Comment, error) {
 }
 
 func (repo *Repository) CreateComment(comment Comment) error {
-	return nil
+	_, err := repo.db.Exec("INSERT INTO comments (id, event_id, traq_id, content) VALUES (?, ?, ?, ?)",
+		comment.ID, comment.EventID, comment.TraQID, comment.Content)
+	return err
 }

@@ -19,6 +19,22 @@ type DateTimeResponse struct {
 	Start time.Time `json:"start"`
 }
 
+// EventMeResponse defines model for EventMeResponse.
+type EventMeResponse struct {
+	Description *string            `json:"description,omitempty"`
+	EventId     openapi_types.UUID `json:"event_id"`
+	IsAnswered  bool               `json:"isAnswered"`
+	IsConfirmed bool               `json:"isConfirmed"`
+	IsHost      bool               `json:"isHost"`
+	Title       string             `json:"title"`
+}
+
+// EventMeResponses defines model for EventMeResponses.
+type EventMeResponses = []EventMeResponse
+
+// GetAllEventsResponse defines model for GetAllEventsResponse.
+type GetAllEventsResponse = []GetAllEventsElement
+
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []Applicant
 
@@ -27,12 +43,15 @@ type GetEventParticipantsResponse = []string
 
 // GetEventResponse defines model for GetEventResponse.
 type GetEventResponse struct {
-	Date        *DateTimeResponse   `json:"date,omitempty"`
-	DateOptions *[]DateOption       `json:"dateOptions,omitempty"`
-	Description string              `json:"description"`
-	Id          *openapi_types.UUID `json:"id,omitempty"`
-	IsConfirmed *bool               `json:"isConfirmed,omitempty"`
-	Title       string              `json:"title"`
+	Date        *DateTimeResponse `json:"date,omitempty"`
+	DateOptions []DateOption      `json:"dateOptions"`
+	Description string            `json:"description"`
+
+	// HostID traQ ID
+	HostID      string             `json:"hostID"`
+	Id          openapi_types.UUID `json:"id"`
+	IsConfirmed bool               `json:"isConfirmed"`
+	Title       string             `json:"title"`
 }
 
 // GetEventTargetsResponse defines model for GetEventTargetsResponse.
@@ -42,6 +61,17 @@ type GetEventTargetsResponse = []string
 type GetMeResponse struct {
 	TraQID *string `json:"traQID,omitempty"`
 }
+
+// GetMyParticipateEvent defines model for GetMyParticipateEvent.
+type GetMyParticipateEvent struct {
+	Date        DateTimeResponse   `json:"date"`
+	Description string             `json:"description"`
+	Id          openapi_types.UUID `json:"id"`
+	Title       string             `json:"title"`
+}
+
+// GetMyParticipateEventsResponse defines model for GetMyParticipateEventsResponse.
+type GetMyParticipateEventsResponse = []GetMyParticipateEvent
 
 // GetTraQGroupsResponse defines model for GetTraQGroupsResponse.
 type GetTraQGroupsResponse = []TraQGroup
@@ -57,7 +87,9 @@ type PatchEventConfirmRequest struct {
 
 // PostEventApplicantsRequest defines model for PostEventApplicantsRequest.
 type PostEventApplicantsRequest struct {
-	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
+	// Comment 何かコメントがあれば
+	Comment       string               `json:"comment"`
+	DateOptionIDs []openapi_types.UUID `json:"dateOptionIDs"`
 }
 
 // PostEventRequest defines model for PostEventRequest.
@@ -89,6 +121,15 @@ type DateOption struct {
 	Start time.Time          `json:"start"`
 }
 
+// GetAllEventsElement defines model for getAllEventsElement.
+type GetAllEventsElement struct {
+	End         *time.Time         `json:"end,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	IsConfirmed bool               `json:"isConfirmed"`
+	Start       *time.Time         `json:"start,omitempty"`
+	Title       string             `json:"title"`
+}
+
 // TraQGroup defines model for traQGroup.
 type TraQGroup struct {
 	Members *[]TraQUser `json:"members,omitempty"`
@@ -104,6 +145,11 @@ type TraQUser struct {
 // EventID defines model for eventID.
 type EventID = openapi_types.UUID
 
+// GetEventsAllParams defines parameters for GetEventsAll.
+type GetEventsAllParams struct {
+	IncludePastEvents *bool `form:"includePastEvents,omitempty" json:"includePastEvents,omitempty"`
+}
+
 // PostEventsJSONRequestBody defines body for PostEvents for application/json ContentType.
 type PostEventsJSONRequestBody = PostEventRequest
 
@@ -118,6 +164,15 @@ type ServerInterface interface {
 
 	// (POST /events)
 	PostEvents(ctx echo.Context) error
+
+	// (GET /events/all)
+	GetEventsAll(ctx echo.Context, params GetEventsAllParams) error
+
+	// (GET /events/me)
+	GetEventsMe(ctx echo.Context) error
+
+	// (GET /events/me/participate)
+	GetEventsMeParticipate(ctx echo.Context) error
 
 	// (GET /events/{eventID})
 	GetEventsEventID(ctx echo.Context, eventID EventID) error
@@ -161,6 +216,42 @@ func (w *ServerInterfaceWrapper) PostEvents(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostEvents(ctx)
+	return err
+}
+
+// GetEventsAll converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsAll(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetEventsAllParams
+	// ------------- Optional query parameter "includePastEvents" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includePastEvents", ctx.QueryParams(), &params.IncludePastEvents)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includePastEvents: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsAll(ctx, params)
+	return err
+}
+
+// GetEventsMe converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsMe(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsMe(ctx)
+	return err
+}
+
+// GetEventsMeParticipate converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsMeParticipate(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsMeParticipate(ctx)
 	return err
 }
 
@@ -325,6 +416,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/events", wrapper.PostEvents)
+	router.GET(baseURL+"/events/all", wrapper.GetEventsAll)
+	router.GET(baseURL+"/events/me", wrapper.GetEventsMe)
+	router.GET(baseURL+"/events/me/participate", wrapper.GetEventsMeParticipate)
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)

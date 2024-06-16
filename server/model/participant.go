@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/google/uuid"
@@ -43,4 +44,30 @@ func (repo *Repository) CreateParticipants(participants []Participant) error {
 	}
 
 	return tx.Commit()
+}
+
+func (repo *Repository) GetParticipateEventsByTraQID(traQID string) ([]Participant, error) {
+	participants := make([]Participant, 0)
+	err := repo.db.Select(&participants, "SELECT * FROM participants WHERE traq_id = ?", traQID)
+	if err != nil {
+		return nil, err
+	}
+	return participants, nil
+}
+
+type ParticipantEventDetail struct {
+	ID          uuid.UUID    `db:"id"`
+	Title       string       `db:"title"`
+	Description string       `db:"description"`
+	Start       sql.NullTime `db:"start"`
+	End         sql.NullTime `db:"end"`
+}
+
+func (repo *Repository) GetParticipateEventsDetailByTraQID(traQID string) ([]ParticipantEventDetail, error) {
+	participantEventsDetail := make([]ParticipantEventDetail, 0)
+	err := repo.db.Select(&participantEventsDetail, "SELECT events.id, events.title, events.description, events.start, events.end FROM participants JOIN events ON participants.event_id = events.id WHERE participants.traq_id = ?", traQID)
+	if err != nil {
+		return nil, err
+	}
+	return participantEventsDetail, nil
 }
