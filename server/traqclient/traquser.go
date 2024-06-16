@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -64,4 +65,26 @@ func (c *Client) GetUsersMap(ctx context.Context) (UserMap, error) {
 		}
 	}
 	return UserMap, nil
+}
+
+var ErrUserNotFound = errors.New("user not found")
+
+// GetUser gets a user information by user ID.
+// If the user is not found, it returns [ErrUserNotFound].
+func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
+	user, res, err := c.apiClient.UserApi.GetUser(ctx, userID).Execute()
+	if err != nil {
+		return User{}, err
+	}
+	if res.StatusCode == http.StatusNotFound {
+		return User{}, ErrUserNotFound
+	}
+	return User{
+		Id:          user.Id,
+		Name:        user.Name,
+		DisplayName: user.DisplayName,
+		IconFileId:  user.IconFileId,
+		Bot:         user.Bot,
+		UpdatedAt:   user.UpdatedAt,
+	}, nil
 }

@@ -8,7 +8,6 @@ import (
 
 type DateVote struct {
 	ID        uuid.UUID `db:"id"`
-	EventID   uuid.UUID `db:"event_id"`
 	TraQID    string    `db:"traq_id"`
 	DateID    uuid.UUID `db:"event_date_id"`
 	CreatedAt time.Time `db:"created_at"`
@@ -38,6 +37,6 @@ func (repo *Repository) CreateDateVotes(votes []DateVote) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return tx.Commit()
 }
