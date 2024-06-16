@@ -208,6 +208,8 @@ components:
           type: string
         description:
           type: string
+        location:
+          type: string
         dateOptions:
           type: array
           items:
