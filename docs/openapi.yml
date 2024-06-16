@@ -104,17 +104,21 @@ paths:
   /events/{eventID}/confirm:
     parameters:
       - $ref: "#/components/parameters/eventID"
-    patch:
+    post:
       tags:
         - event
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchEventConfirmRequest"
+              $ref: "#/components/schemas/PostEventConfirmRequest"
       responses:
-        204:
+        200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostEventConfirmResponse"
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -169,6 +173,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetEventApplicantsResponse"
+  /events/{eventID}/calendar:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            text/calendar:
+              schema:
+                type: string
   /traq/groups:
     get:
       description: get all traQ groups
@@ -207,6 +224,8 @@ components:
         title:
           type: string
         description:
+          type: string
+        location:
           type: string
         dateOptions:
           type: array
@@ -301,6 +320,8 @@ components:
           type: string
         description:
           type: string
+        location:
+          type: string
         hostID:
           type: string
           description: traQ ID
@@ -331,7 +352,7 @@ components:
       required:
         - start
         - end
-    PatchEventConfirmRequest:
+    PostEventConfirmRequest:
       type: object
       properties:
         isConfirmed:
@@ -341,6 +362,13 @@ components:
           format: uuid
       required:
         - isConfirmed
+    PostEventConfirmResponse:
+      type: object
+      properties:
+        group:
+          $ref: "#/components/schemas/traQGroup"
+      required:
+        - group
     PostEventApplicantsRequest:
       type: object
       properties:
