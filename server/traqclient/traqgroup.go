@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"unicode/utf8"
 
 	"github.com/traP-jp/h24s_10/model"
 	"github.com/traPtitech/go-traq"
@@ -79,6 +80,18 @@ func (c *Client) GetUserGroups(ctx context.Context) ([]Group, error) {
 	return GroupList, nil
 }
 
+func (c *Client) GetUserGroupsMap(ctx context.Context) (map[string]Group, error) {
+	groupMap := make(map[string]Group)
+	groupList, err := c.GetUserGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, group := range groupList {
+		groupMap[group.Name] = group
+	}
+	return groupMap, nil
+}
+
 func (c *Client) CreateUserGroup(ctx context.Context, name string, description string, groupType string, adminID string, participants []model.Participant) (GroupDetail, error) {
 	fmt.Println("CreateUserGroup")
 	if len(participants) == 0 || len(participants) == 1 {
@@ -88,8 +101,19 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 	fmt.Println("participants: ", participants)
 
 	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
+
+	groupsMap, err := c.GetUserGroupsMap(ctx)
+	if err != nil {
+		return GroupDetail{}, err
+	}
+
+	groupName, err := editGroupName(name, groupsMap)
+	if err != nil {
+		return GroupDetail{}, err
+	}
+
 	postUserGroupRequest := *traq.NewPostUserGroupRequest(
-		name,
+		groupName,
 		description,
 		groupType,
 	)
@@ -99,7 +123,6 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 	resp, _, err := c.apiClient.GroupApi.CreateUserGroup(ctx).PostUserGroupRequest(postUserGroupRequest).Execute()
 	if err != nil {
 		fmt.Printf("create user group error: %v", err)
-		fmt.Printf("title: %v", resp.Name)
 		return GroupDetail{}, err
 	}
 
@@ -152,4 +175,22 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 		UpdatedAt:   resp.UpdatedAt,
 		Admins:      resp.Admins,
 	}, nil
+}
+
+func editGroupName(name string, groupsMap map[string]Group) (string, error) {
+	runeName := []rune(name)
+	if utf8.RuneCountInString(string(runeName)) > 30 {
+		runeName = runeName[:30]
+	}
+	if _, ok := groupsMap[string(runeName)]; ok {
+		return string(runeName), nil
+	} else {
+		for i := range 10 {
+			runeName[29] = rune('0' + i%10)
+			if _, ok := groupsMap[string(runeName)]; ok {
+				return string(runeName), nil
+			}
+		}
+		return "", fmt.Errorf("group name error")
+	}
 }
