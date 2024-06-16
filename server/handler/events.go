@@ -3,12 +3,15 @@ package handler
 import (
 	"database/sql"
 	"log"
+	"fmt"
 	"net/http"
 	"slices"
 
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
 	"github.com/traP-jp/h24s_10/model"
+	"github.com/traP-jp/h24s_10/traqclient"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,6 +21,33 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 	var req api.PostEventRequest
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	// check if exist same pair of date start and date end
+	for i, dateOption := range req.DateOptions {
+		for j := i + 1; j < len(req.DateOptions); j++ {
+			if dateOption.Start == req.DateOptions[j].Start && dateOption.End == req.DateOptions[j].End {
+				return echo.NewHTTPError(http.StatusBadRequest, "date options must be unique")
+			}
+		}
+	}
+
+	// check if the targets are valid
+	eg, c := errgroup.WithContext(ctx.Request().Context())
+	eg.SetLimit(10)
+	for _, target := range req.Targets {
+		eg.Go(func() error {
+			_, err := h.client.GetUser(c, target)
+			if err == traqclient.ErrUserNotFound {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("user %s not found", target))
+			} else if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	hostID := ctx.Get(traQIDKey).(string)
