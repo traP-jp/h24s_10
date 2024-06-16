@@ -5,6 +5,31 @@ info:
   description: traP 24 spring hackathon team 10
 
 paths:
+  /ping:
+    get:
+      description: Ping endpoint
+      tags:
+        - health
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: pong
+  /me:
+    get:
+      tags:
+        - me
+      description: get my traQ ID
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMeResponse"
   /events:
     summary: event
     description: event description
@@ -24,6 +49,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostEventResponse"
+  /events/all:
+    get:
+      tags:
+        - event
+      parameters:
+        - in: query
+          name: includePastEvents
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllEventsResponse"
+  /events/me:
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventMeResponses"
+  /events/me/participate:
+    get:
+      description: 自分の参加するイベント(isConfirmedがtrueのものだけ)
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMyParticipateEventsResponse"
   /events/{eventID}:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -37,6 +101,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetEventResponse"
+  /events/{eventID}/confirm:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    patch:
+      tags:
+        - event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchEventConfirmRequest"
+      responses:
+        204:
+          description: OK
   /events/{eventID}/participants:
     parameters:
       - $ref: "#/components/parameters/eventID"
@@ -115,9 +193,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetTraQUsersResponse"
-      
+
 components:
   schemas:
+    GetMeResponse:
+      type: object
+      properties:
+        traQID:
+          type: string
     PostEventRequest:
       type: object
       properties:
@@ -146,13 +229,68 @@ components:
             description: traQ ID
       required:
         - title
+        - description
         - dateOptions
+        - targets
     PostEventResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
+      required:
+        - id
+    GetAllEventsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/getAllEventsElement"
+    GetMyParticipateEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          $ref: "#/components/schemas/DateTimeResponse"
+      required:
+        - id
+        - title
+        - description
+        - date
+    GetMyParticipateEventsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/GetMyParticipateEvent"
+    EventMeResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        isConfirmed:
+          type: boolean
+        isAnswered:
+          type: boolean
+        isHost:
+          type: boolean
+      required:
+        - event_id
+        - title
+        - isConfirmed
+        - isAnswered
+        - isHost
+    EventMeResponses:
+      type: array
+      items:
+        $ref: "#/components/schemas/EventMeResponse"
     GetEventResponse:
       type: object
       properties:
@@ -163,29 +301,46 @@ components:
           type: string
         description:
           type: string
+        hostID:
+          type: string
+          description: traQ ID
         isConfirmed:
           type: boolean
         date:
-          type: object
-          properties:
-            start:
-              type: string
-              format: date-time
-            end:
-              type: string
-              format: date-time
-          required:
-            - start
-            - end
+          $ref: "#/components/schemas/DateTimeResponse"
         dateOptions:
           type: array
           items:
             $ref: "#/components/schemas/dateOption"
       required:
-        - event_id
+        - id
         - title
         - description
-        - status
+        - hostID
+        - isConfirmed
+        - dateOptions
+    DateTimeResponse:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - start
+        - end
+    PatchEventConfirmRequest:
+      type: object
+      properties:
+        isConfirmed:
+          type: boolean
+        eventDateOptionID:
+          type: string
+          format: uuid
+      required:
+        - isConfirmed
     PostEventApplicantsRequest:
       type: object
       properties:
@@ -195,6 +350,12 @@ components:
             type: string
             format: uuid
             description: 日時候補のID
+        comment:
+          type: string
+          description: 何かコメントがあれば
+      required:
+        - dateOptionIDs
+        - comment
     GetEventParticipantsResponse:
       type: array
       items:
@@ -208,27 +369,35 @@ components:
     GetEventApplicantsResponse:
       type: array
       items:
-        type: object
-        properties:
-          userID:
-            type: string
-          dateOptionIDs:
-            type: array
-            items:
-              type: string
+        $ref: "#/components/schemas/applicant"
     GetTraQGroupsResponse:
-      type: object
-      properties:
-        name:
-          type: string
-        members:
-          type: array
-          items:
-            $ref: "#/components/schemas/traQUser"
+      type: array
+      items:
+        $ref: "#/components/schemas/traQGroup"
     GetTraQUsersResponse:
       type: array
       items:
         $ref: "#/components/schemas/traQUser"
+    getAllEventsElement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        isConfirmed:
+          type: boolean
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - isConfirmed
     dateOption:
       type: object
       properties:
@@ -245,6 +414,22 @@ components:
         - id
         - start
         - end
+    applicant:
+      type: object
+      properties:
+        traqID:
+          type: string
+        dateOptionIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        comment:
+          type: string
+      required:
+        - traqID
+        - dateOptionIDs
+        - comment
     traQUser:
       type: object
       properties:
@@ -255,6 +440,15 @@ components:
       required:
         - name
         - displayName
+    traQGroup:
+      type: object
+      properties:
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/traQUser"
 
   parameters:
     eventID:
