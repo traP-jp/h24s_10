@@ -71,11 +71,9 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if len(*req.DateOptionIDs) == 0 {
-		return ctx.NoContent(http.StatusOK)
-	}
+
 	// eventIDがeventDateIDのそれぞれの値が齟齬がないか確認
-	err := h.repo.ValidateEventDateIDsFromEventID(eventID, *req.DateOptionIDs)
+	err := h.repo.ValidateEventDateIDsFromEventID(eventID, req.DateOptionIDs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid event ID and DateOptionIDs: %v", err))
 	}
@@ -83,13 +81,13 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	traQID := ctx.Get(traQIDKey).(string)
 
 	// traqIDがeventDateIDのそれぞれの値が齟齬がないか確認
-	err = h.repo.ValidateEventDateIDsFromTraqID(traQID, *req.DateOptionIDs)
+	err = h.repo.ValidateEventDateIDsFromTraqID(traQID, req.DateOptionIDs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already exists traqID and DateOptionIDs: %v", err))
 	}
 
-	dateVotes := make([]model.DateVote, 0, len(*req.DateOptionIDs))
-	for _, dateOption := range *req.DateOptionIDs {
+	dateVotes := make([]model.DateVote, 0, len(req.DateOptionIDs))
+	for _, dateOption := range req.DateOptionIDs {
 		id, err := uuid.NewV7()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -104,6 +102,17 @@ func (h *Handler) PostEventsEventIDApplicants(ctx echo.Context, eventID api.Even
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+
+	commentID, err := uuid.NewV7()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	h.repo.CreateComment(model.Comment{
+		ID:      commentID,
+		EventID: eventID,
+		TraQID:  traQID,
+		Content: req.Comment,
+	})
 
 	return ctx.NoContent(http.StatusCreated)
 }
