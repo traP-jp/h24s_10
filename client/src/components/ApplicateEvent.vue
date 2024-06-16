@@ -24,10 +24,6 @@ const event = computed(() => eventsAxios.value?.data);
 
 const dateOptionIDs = ref<string[]>([]);
 
-watch(event, () => {
-  dateOptionIDs.value = event.value?.dateOptions?.map((v) => v.id) ?? [];
-});
-
 const comment = ref("");
 const postDateOptionIDs = async () => {
   console.log(dateOptionIDs.value);
