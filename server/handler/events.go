@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
@@ -106,6 +107,39 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusCreated, res)
+}
+
+func (h *Handler) GetEventsAll(ctx echo.Context, params api.GetEventsAllParams) error {
+	events, err := h.repo.GetEvents()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	var includePathEvents bool
+	if params.IncludePastEvents != nil {
+		includePathEvents = *params.IncludePastEvents
+	} else {
+		includePathEvents = true
+	}
+
+	res := make(api.GetAllEventsResponse, 0, len(events))
+	for _, event := range events {
+		if !includePathEvents && event.End.Valid && event.End.Time.Before(time.Now()) {
+			continue
+		}
+		e := api.GetAllEventsElement{
+			Id:          event.ID,
+			Title:       event.Title,
+			IsConfirmed: event.IsConfirmed,
+		}
+		if event.Start.Valid && event.End.Valid {
+			e.Start = &event.Start.Time
+			e.End = &event.End.Time
+		}
+		res = append(res, e)
+	}
+
+	return ctx.JSON(http.StatusOK, res)
 }
 
 // (GET /events/me)

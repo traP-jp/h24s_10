@@ -32,6 +32,9 @@ type EventMeResponse struct {
 // EventMeResponses defines model for EventMeResponses.
 type EventMeResponses = []EventMeResponse
 
+// GetAllEventsResponse defines model for GetAllEventsResponse.
+type GetAllEventsResponse = []GetAllEventsElement
+
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []Applicant
 
@@ -113,6 +116,15 @@ type DateOption struct {
 	Start time.Time          `json:"start"`
 }
 
+// GetAllEventsElement defines model for getAllEventsElement.
+type GetAllEventsElement struct {
+	End         *time.Time         `json:"end,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	IsConfirmed bool               `json:"isConfirmed"`
+	Start       *time.Time         `json:"start,omitempty"`
+	Title       string             `json:"title"`
+}
+
 // TraQGroup defines model for traQGroup.
 type TraQGroup struct {
 	Members *[]TraQUser `json:"members,omitempty"`
@@ -128,6 +140,11 @@ type TraQUser struct {
 // EventID defines model for eventID.
 type EventID = openapi_types.UUID
 
+// GetEventsAllParams defines parameters for GetEventsAll.
+type GetEventsAllParams struct {
+	IncludePastEvents *bool `form:"includePastEvents,omitempty" json:"includePastEvents,omitempty"`
+}
+
 // PostEventsJSONRequestBody defines body for PostEvents for application/json ContentType.
 type PostEventsJSONRequestBody = PostEventRequest
 
@@ -142,6 +159,9 @@ type ServerInterface interface {
 
 	// (POST /events)
 	PostEvents(ctx echo.Context) error
+
+	// (GET /events/all)
+	GetEventsAll(ctx echo.Context, params GetEventsAllParams) error
 
 	// (GET /events/me)
 	GetEventsMe(ctx echo.Context) error
@@ -191,6 +211,24 @@ func (w *ServerInterfaceWrapper) PostEvents(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostEvents(ctx)
+	return err
+}
+
+// GetEventsAll converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsAll(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetEventsAllParams
+	// ------------- Optional query parameter "includePastEvents" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includePastEvents", ctx.QueryParams(), &params.IncludePastEvents)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includePastEvents: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsAll(ctx, params)
 	return err
 }
 
@@ -373,6 +411,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/events", wrapper.PostEvents)
+	router.GET(baseURL+"/events/all", wrapper.GetEventsAll)
 	router.GET(baseURL+"/events/me", wrapper.GetEventsMe)
 	router.GET(baseURL+"/events/me/participate", wrapper.GetEventsMeParticipate)
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
