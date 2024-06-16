@@ -19,6 +19,19 @@ type DateTimeResponse struct {
 	Start time.Time `json:"start"`
 }
 
+// EventMeResponse defines model for EventMeResponse.
+type EventMeResponse struct {
+	Description *string            `json:"description,omitempty"`
+	EventId     openapi_types.UUID `json:"event_id"`
+	IsAnswered  bool               `json:"isAnswered"`
+	IsConfirmed bool               `json:"isConfirmed"`
+	IsHost      bool               `json:"isHost"`
+	Title       string             `json:"title"`
+}
+
+// EventMeResponses defines model for EventMeResponses.
+type EventMeResponses = []EventMeResponse
+
 // GetEventApplicantsResponse defines model for GetEventApplicantsResponse.
 type GetEventApplicantsResponse = []Applicant
 
@@ -27,12 +40,12 @@ type GetEventParticipantsResponse = []string
 
 // GetEventResponse defines model for GetEventResponse.
 type GetEventResponse struct {
-	Date        *DateTimeResponse   `json:"date,omitempty"`
-	DateOptions *[]DateOption       `json:"dateOptions,omitempty"`
-	Description string              `json:"description"`
-	Id          *openapi_types.UUID `json:"id,omitempty"`
-	IsConfirmed *bool               `json:"isConfirmed,omitempty"`
-	Title       string              `json:"title"`
+	Date        *DateTimeResponse  `json:"date,omitempty"`
+	DateOptions []DateOption       `json:"dateOptions"`
+	Description string             `json:"description"`
+	Id          openapi_types.UUID `json:"id"`
+	IsConfirmed bool               `json:"isConfirmed"`
+	Title       string             `json:"title"`
 }
 
 // GetEventTargetsResponse defines model for GetEventTargetsResponse.
@@ -119,6 +132,9 @@ type ServerInterface interface {
 	// (POST /events)
 	PostEvents(ctx echo.Context) error
 
+	// (GET /events/me)
+	GetEventsMe(ctx echo.Context) error
+
 	// (GET /events/{eventID})
 	GetEventsEventID(ctx echo.Context, eventID EventID) error
 
@@ -161,6 +177,15 @@ func (w *ServerInterfaceWrapper) PostEvents(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostEvents(ctx)
+	return err
+}
+
+// GetEventsMe converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsMe(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsMe(ctx)
 	return err
 }
 
@@ -325,6 +350,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/events", wrapper.PostEvents)
+	router.GET(baseURL+"/events/me", wrapper.GetEventsMe)
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)
