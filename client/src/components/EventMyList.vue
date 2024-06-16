@@ -38,6 +38,7 @@ const stringSlice = (str: string, length: number) => {
 
 <template>
   <div class="h-2">イベント一覧</div>
+  <v-btn @click="router.push('/events/all')">全てのイベント</v-btn>
   <div class="eventList">
     <div>
       <div v-if="invitedEvents.length > 0">

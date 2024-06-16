@@ -1,10 +1,5 @@
-import {
-  createRouter,
-  createWebHashHistory,
-  createWebHistory,
-} from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import HelloWorld from "./components/HelloWorld.vue";
-import EventList from "./components/EventList.vue";
 import Event from "./components/Event.vue";
 import ApplicateEvent from "./components/ApplicateEvent.vue";
 
@@ -19,7 +14,12 @@ export const router = createRouter({
     {
       path: "/events",
       name: "Events",
-      component: () => import("./components/EventList.vue"),
+      component: () => import("./components/EventMyList.vue"),
+    },
+    {
+      path: "/events/all",
+      name: "AllEvents",
+      component: () => import("./components/EventAllList.vue"),
     },
 
     {
