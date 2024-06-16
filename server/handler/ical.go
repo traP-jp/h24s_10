@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	ics "github.com/arran4/golang-ical"
@@ -21,12 +23,28 @@ func (h *Handler) GetEventsEventIDCalendar(ctx echo.Context, eventID api.EventID
 		return echo.NewHTTPError(http.StatusBadRequest, "Event is not confirmed")
 	}
 
-	cal := generateIcal(event)
+	participants, err := h.repo.GetParticipants(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get participants")
+	}
+
+	cal := generateIcal(event, participants)
 
 	return ctx.Blob(http.StatusOK, "text/calendar", []byte(cal))
 }
 
-func generateIcal(e model.Event) string {
+func generateIcal(e model.Event, participants []model.Participant) string {
+	attendees := make([]string, len(participants))
+	for i, p := range participants {
+		attendees[i] = p.TraQID
+	}
+	description := fmt.Sprintf(
+		"Host: %s\nAttendees: %s\nDescription: %s",
+		e.HostID,
+		strings.Join(attendees, ", "),
+		e.Description,
+	)
+
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodRequest)
 
@@ -35,7 +53,7 @@ func generateIcal(e model.Event) string {
 	event.SetStartAt(e.Start.Time)
 	event.SetEndAt(e.End.Time)
 	event.SetSummary(e.Title)
-	event.SetDescription(e.Description)
+	event.SetDescription(description)
 	event.SetLocation(e.Location)
 
 	return cal.Serialize()
