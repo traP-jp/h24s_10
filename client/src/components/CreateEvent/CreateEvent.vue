@@ -2,7 +2,12 @@
 import { computed, ref } from "vue";
 import type { VAutocomplete } from "vuetify/lib/components/index.mjs";
 import DateSelector from "./DateSelector.vue";
-import { mdiPlus, mdiClose } from "@mdi/js";
+import {
+  mdiPlus,
+  mdiClose,
+  mdiAccountMultiple,
+  mdiDotsHorizontal,
+} from "@mdi/js";
 import { format } from "date-fns";
 import {
   usePostEvents,
@@ -10,28 +15,33 @@ import {
   useGetTraqUsers,
   useGetTraqGroups,
 } from "/@/generated/api/openapi";
-import { start } from "repl";
-import { onMounted } from "vue";
+import type { TraQUser, TraQGroup } from "/@/generated/api/openapi";
+import { useRouter } from "vue-router";
+import { title } from "process";
+
+const router = useRouter();
 
 const { isLoading, data: me } = useGetMe();
-const { data: traQusers } = useGetTraqUsers();
-const { data: groups } = useGetTraqGroups();
-const { mutate: postEvent, error: postEventError } = usePostEvents();
+const { data: traQUsers } = useGetTraqUsers();
+const { data: traQGroups } = useGetTraqGroups();
+const { mutateAsync: postEvent } = usePostEvents();
 
 type FilterFunction = Exclude<
   VAutocomplete["$props"]["customFilter"],
   undefined
 >;
-type User = {
-  name: string;
-  displayName: string;
-};
+type Invitee = (TraQUser & { type: "user" }) | (TraQGroup & { type: "group" });
 
-const users = computed(() => traQusers.value?.data ?? []);
+const users = computed<Invitee[]>(
+  () => traQUsers.value?.data.map((v) => ({ ...v, type: "user" })) ?? []
+);
+const groups = computed<Invitee[]>(
+  () => traQGroups.value?.data.map((v) => ({ ...v, type: "group" })) ?? []
+);
 
 const eventName = ref("");
 const eventDescription = ref("");
-const invitees = ref<User[]>([]);
+const invitees = ref<Invitee[]>([]);
 
 const userSearchFilter: FilterFunction = (_, query, item?) => {
   const name = item?.raw.name ?? "";
@@ -56,17 +66,19 @@ const removeDate = (index: number) => {
   Dates.value.splice(index, 1);
 };
 
-const createEvent = () => {
-  console.log({
-    title: eventName.value,
-    description: eventDescription.value,
-    dateOptions: Dates.value.map(({ startDate, endDate }) => ({
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-    })),
-    targets: invitees.value.map(({ name }) => name),
-  });
-  postEvent({
+const snackbarTitle = ref(false);
+const snackbarDates = ref(false);
+
+const createEvent = async () => {
+  if (eventName.value === "") {
+    snackbarTitle.value = true;
+    return;
+  }
+  if (Dates.value.length === 0) {
+    snackbarDates.value = true;
+    return;
+  }
+  await postEvent({
     data: {
       title: eventName.value,
       description: eventDescription.value,
@@ -74,26 +86,37 @@ const createEvent = () => {
         start: startDate.toISOString(),
         end: endDate.toISOString(),
       })),
-      targets: invitees.value.map(({ name }) => name),
+      targets:
+        invitees.value.length > 0
+          ? invitees.value.flatMap((v) => {
+              if (v.type === "user") {
+                return [v.name];
+              } else {
+                return v.members?.map(({ name }) => name) ?? [];
+              }
+            })
+          : [],
     },
   });
+  console.log("created");
+  router.push("/");
 };
 </script>
 
 <template>
-  <h1>イベント作成</h1>
+  <h1 class="text-h2 text-left">イベント作成</h1>
   {{ isLoading }}
   {{ me?.data.traQID }}
-  <h2>イベント名</h2>
+  <h2 class="text-h4 text-left">タイトル</h2>
   <v-text-field v-model="eventName" label="イベント名" />
 
-  <h2>イベント概要</h2>
+  <h2 class="text-h4 text-left">概要</h2>
   <v-textarea v-model="eventDescription" label="イベント概要" />
-  <h2>招待者</h2>
+  <h2 class="text-h4 text-left">招待者</h2>
 
   <v-autocomplete
     v-model="invitees"
-    :items="users"
+    :items="[...users, ...groups]"
     label="招待者"
     item-title="name"
     item-value="name"
@@ -105,22 +128,58 @@ const createEvent = () => {
   >
     <template v-slot:chip="{ props, item }">
       <v-chip
+        v-if="item.raw.type === 'user'"
         v-bind="props"
         :prepend-avatar="`https://q.trap.jp/api/v3/public/icon/${item.raw.name}`"
         :text="item.raw.name"
-      ></v-chip>
+      />
+      <v-chip
+        v-if="item.raw.type === 'group'"
+        v-bind="props"
+        :prepend-icon="mdiAccountMultiple"
+        >{{ item.raw.name }} {{ item.raw.members?.length }}人</v-chip
+      >
     </template>
     <template v-slot:item="{ props, item }">
       <v-list-item
+        v-if="item.raw.type === 'user'"
         v-bind="props"
         :prepend-avatar="`https://q.trap.jp/api/v3/public/icon/${item.raw.name}`"
         :subtitle="item.raw.displayName"
         :title="item.raw.name"
-      ></v-list-item>
+      />
+      <v-list-item
+        v-if="item.raw.type === 'group'"
+        v-bind="props"
+        :prepend-icon="mdiAccountMultiple"
+        :subtitle="item.raw.members?.map((v) => v.name).join(', ')"
+        :title="item.raw.name"
+      >
+        <template v-slot:subtitle
+          ><v-avatar
+            v-for="(v, index) in item.raw.members?.slice(0, 6)"
+            :key="v.name"
+            size="32"
+            color="blue"
+            text-color="white"
+          >
+            <v-img
+              :src="`https://q.trap.jp/api/v3/public/icon/${v.name}`"
+              :alt="v.name"
+            />
+          </v-avatar>
+          <v-icon
+            v-if="item.raw.members?.length && item.raw.members?.length > 6"
+            size="32"
+            :icon="mdiDotsHorizontal"
+          />
+          {{ item.raw.members?.length }}人
+        </template>
+      </v-list-item>
     </template>
   </v-autocomplete>
 
-  <h2>日程候補</h2>
+  <h2 class="text-h4 text-left">日程候補</h2>
   <v-list :class="$style.list">
     <TransitionGroup name="list">
       <v-list-item
@@ -143,9 +202,39 @@ const createEvent = () => {
   <v-dialog v-model="dialog" max-width="800" max-height="600">
     <DateSelector @close="dialog = false" @update:value="addDates" />
   </v-dialog>
-  <br />
-  <v-btn color="blue" @click="createEvent">イベント作成</v-btn>
-  {{ postEventError }}
+  <div class="pt-6"></div>
+  <v-btn size="x-large" color="blue" @click="createEvent">イベント作成</v-btn>
+  <div class="pt-12"></div>
+
+  <v-snackbar v-model="snackbarTitle">
+    タイトルが入力されていません。
+
+    <template v-slot:actions>
+      <v-btn
+        color="pink"
+        variant="text"
+        @click="snackbarTitle = false"
+        timeout="2000"
+      >
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
+
+  <v-snackbar v-model="snackbarDates">
+    日程が追加されていません。
+
+    <template v-slot:actions>
+      <v-btn
+        color="pink"
+        variant="text"
+        @click="snackbarDates = false"
+        timeout="2000"
+      >
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <style module lang="scss">
