@@ -82,7 +82,9 @@ type GetTraQUsersResponse = []TraQUser
 
 // PostEventApplicantsRequest defines model for PostEventApplicantsRequest.
 type PostEventApplicantsRequest struct {
-	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
+	// Comment 何かコメントがあれば
+	Comment       string               `json:"comment"`
+	DateOptionIDs []openapi_types.UUID `json:"dateOptionIDs"`
 }
 
 // PostEventConfirmRequest defines model for PostEventConfirmRequest.
@@ -94,12 +96,6 @@ type PostEventConfirmRequest struct {
 // PostEventConfirmResponse defines model for PostEventConfirmResponse.
 type PostEventConfirmResponse struct {
 	Group TraQGroup `json:"group"`
-  
-// PostEventApplicantsRequest defines model for PostEventApplicantsRequest.
-type PostEventApplicantsRequest struct {
-	// Comment 何かコメントがあれば
-	Comment       string               `json:"comment"`
-	DateOptionIDs []openapi_types.UUID `json:"dateOptionIDs"`
 }
 
 // PostEventRequest defines model for PostEventRequest.
