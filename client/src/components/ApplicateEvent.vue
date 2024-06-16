@@ -1,76 +1,103 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { format, parseISO, startOfDay } from "date-fns";
+import { computed, ref } from "vue";
+import { format } from "date-fns";
 
-type DateOption = {
-  id: string;
-  start: Date;
-  end: Date;
-};
-type EventDetail = {
-  id: string;
-  title: string;
-  organizer: string;
-  description: string;
-  isConfirmed: boolean;
-  dateOptions: DateOption[];
-};
+import {
+  useGetEventsEventID,
+  usePostEventsEventIDApplicants,
+} from "../generated/api/openapi";
 
-// exsample event
-const eventDetail: EventDetail = {
-  id: "eventID",
-  title: "eventTitle",
-  organizer: "ogu_kazemiya",
-  description: "eventDescription",
-  isConfirmed: false,
-  dateOptions: [{ id: "dateOptionID", start: new Date(), end: new Date() }],
-};
+import { useRouter, useRoute } from "vue-router";
+import { watch } from "vue";
 
-const dateOptionIDs = ref<Date[]>([]);
+const router = useRouter();
+const route = useRoute();
 
+const id = Array.isArray(route.params.id)
+  ? route.params.id[0]
+  : route.params.id;
+
+const { data: eventsAxios } = useGetEventsEventID(id);
+const { mutateAsync: postApplicants } = usePostEventsEventIDApplicants();
+
+const event = computed(() => eventsAxios.value?.data);
+
+const dateOptionIDs = ref<boolean[]>([]);
+
+watch(event, () => {
+  dateOptionIDs.value = event.value?.dateOptions?.map((v) => false) ?? [];
+});
+
+const comment = ref("");
 const postDateOptionIDs = () => {
-  // DateOptionIDsをPOSTする
+  console.log({
+    comment: "",
+    dateOptionIDs: dateOptionIDs.value.flatMap((v, i) =>
+      v ? [event.value?.dateOptions?.[i]?.id ?? ""] : []
+    ),
+  });
+  postApplicants({
+    eventID: id,
+    data: {
+      comment: comment.value,
+      dateOptionIDs: dateOptionIDs.value.flatMap((v, i) =>
+        v ? [event.value?.dateOptions?.[i]?.id ?? ""] : []
+      ),
+    },
+  });
 };
 </script>
 
 <template>
   <div>
-    <h1>イベント詳細</h1>
+    <h1 class="text-h3">{{ event?.title }}</h1>
     <div>
-      <h2>{{ eventDetail.title }}</h2>
       <div>
-        by {{ eventDetail.organizer }}
+        by {{ event?.hostID }}
         <img
-          :src="`https://q.trap.jp/api/v3/public/icon/${eventDetail.organizer}`"
-          :alt="`${eventDetail.organizer}'s icon'`"
+          :src="`https://q.trap.jp/api/v3/public/icon/${event?.hostID}`"
+          :alt="`${event?.hostID}'s icon'`"
           height="25"
           width="25"
         />
       </div>
-      <div>{{ eventDetail.description }}</div>
+      <div>{{ event?.description }}</div>
 
-      <div v-if="!eventDetail.isConfirmed">
-        <div v-for="dateOption in eventDetail.dateOptions" :key="dateOption.id">
+      <div v-if="!event?.isConfirmed">
+        <div
+          v-for="dateOption in event?.dateOptions ?? []"
+          :key="dateOption.id"
+        >
           <v-checkbox
             v-model="dateOptionIDs"
             :value="dateOption.id"
-            :label="`${format(dateOption.start, 'MM/dd(eee)')}
-              ${format(dateOption.start, 'HH:mm')} ~ ${format(
-              dateOption.end,
+            :label="`${format(new Date(dateOption.start), 'yyyy/MM/dd(eee)')}
+              ${format(new Date(dateOption.start), 'HH:mm')} ~ ${format(
+              new Date(dateOption.end),
               'HH:mm'
             )}`"
             hide-details
           >
           </v-checkbox>
         </div>
-        <v-btn @click="postDateOptionIDs" color="green">保存</v-btn>
+
+        <h2 class="text-h4">コメント</h2>
+        <v-textarea
+          v-model="comment"
+          label="コメント"
+          auto-grow
+          rows="2"
+        ></v-textarea>
+        <v-btn @click="postDateOptionIDs" color="blue" size="x-large"
+          >保存</v-btn
+        >
       </div>
 
-      <div v-if="eventDetail.isConfirmed">
+      <div v-if="event?.isConfirmed">
         <div>
-          {{ format(eventDetail.dateOptions[0].start, "MM/dd(eee)") }}
-          {{ format(eventDetail.dateOptions[0].start, "HH:mm") }} ~
-          {{ format(eventDetail.dateOptions[0].end, "HH:mm") }}
+          {{ format(new Date(event?.date?.start ?? ""), "MM/dd(eee)") }}
+          {{ format(new Date(event?.date?.start ?? ""), "HH:mm") }} ~
+          {{ format(new Date(event?.date?.end ?? ""), "HH:mm") }}
         </div>
       </div>
     </div>

@@ -31,6 +31,10 @@ import {
 import type {
   MaybeRef
 } from 'vue'
+export type GetEventsAllParams = {
+includePastEvents?: boolean;
+};
+
 export interface TraQUser {
   displayName: string;
   name: string;
@@ -52,6 +56,14 @@ export interface DateOption {
   start: string;
 }
 
+export interface GetAllEventsElement {
+  end?: string;
+  id: string;
+  isConfirmed: boolean;
+  start?: string;
+  title: string;
+}
+
 export type GetTraQUsersResponse = TraQUser[];
 
 export type GetTraQGroupsResponse = TraQGroup[];
@@ -63,7 +75,9 @@ export type GetEventTargetsResponse = string[];
 export type GetEventParticipantsResponse = string[];
 
 export interface PostEventApplicantsRequest {
-  dateOptionIDs?: string[];
+  /** 何かコメントがあれば */
+  comment: string;
+  dateOptionIDs: string[];
 }
 
 export interface PatchEventConfirmRequest {
@@ -78,12 +92,36 @@ export interface DateTimeResponse {
 
 export interface GetEventResponse {
   date?: DateTimeResponse;
-  dateOptions?: DateOption[];
+  dateOptions: DateOption[];
   description: string;
-  id?: string;
-  isConfirmed?: boolean;
+  /** traQ ID */
+  hostID: string;
+  id: string;
+  isConfirmed: boolean;
   title: string;
 }
+
+export interface EventMeResponse {
+  description?: string;
+  event_id: string;
+  isAnswered: boolean;
+  isConfirmed: boolean;
+  isHost: boolean;
+  title: string;
+}
+
+export type EventMeResponses = EventMeResponse[];
+
+export interface GetMyParticipateEvent {
+  date: DateTimeResponse;
+  description: string;
+  id: string;
+  title: string;
+}
+
+export type GetMyParticipateEventsResponse = GetMyParticipateEvent[];
+
+export type GetAllEventsResponse = GetAllEventsElement[];
 
 export interface PostEventResponse {
   id: string;
@@ -273,6 +311,170 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?? {};
       return useMutation(mutationOptions);
     }
     
+export const getEventsAll = (
+    params?: MaybeRef<GetEventsAllParams>, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<GetAllEventsResponse>> => {
+    params = unref(params);
+    return axios.get(
+      `/api/events/all`,{
+    ...options,
+        params: {...unref(params), ...options?.params},}
+    );
+  }
+
+
+export const getGetEventsAllQueryKey = (params?: MaybeRef<GetEventsAllParams>,) => {
+    return ['api','events','all', ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetEventsAllQueryOptions = <TData = Awaited<ReturnType<typeof getEventsAll>>, TError = AxiosError<unknown>>(params?: MaybeRef<GetEventsAllParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsAll>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  getGetEventsAllQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsAll>>> = ({ signal }) => getEventsAll(params, { signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsAll>>, TError, TData> 
+}
+
+export type GetEventsAllQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsAll>>>
+export type GetEventsAllQueryError = AxiosError<unknown>
+
+export const useGetEventsAll = <TData = Awaited<ReturnType<typeof getEventsAll>>, TError = AxiosError<unknown>>(
+ params?: MaybeRef<GetEventsAllParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsAll>>, TError, TData>>, axios?: AxiosRequestConfig}
+
+  ): UseQueryReturnType<TData, TError> & { queryKey: QueryKey } => {
+
+  const queryOptions = getGetEventsAllQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as UseQueryReturnType<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = unref(queryOptions).queryKey as QueryKey;
+
+  return query;
+}
+
+
+
+
+export const getEventsMe = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<EventMeResponses>> => {
+    
+    return axios.get(
+      `/api/events/me`,options
+    );
+  }
+
+
+export const getGetEventsMeQueryKey = () => {
+    return ['api','events','me'] as const;
+    }
+
+    
+export const getGetEventsMeQueryOptions = <TData = Awaited<ReturnType<typeof getEventsMe>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  getGetEventsMeQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsMe>>> = ({ signal }) => getEventsMe({ signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsMe>>, TError, TData> 
+}
+
+export type GetEventsMeQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsMe>>>
+export type GetEventsMeQueryError = AxiosError<unknown>
+
+export const useGetEventsMe = <TData = Awaited<ReturnType<typeof getEventsMe>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+
+  ): UseQueryReturnType<TData, TError> & { queryKey: QueryKey } => {
+
+  const queryOptions = getGetEventsMeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryReturnType<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = unref(queryOptions).queryKey as QueryKey;
+
+  return query;
+}
+
+
+
+
+/**
+ * 自分の参加するイベント(isConfirmedがtrueのものだけ)
+ */
+export const getEventsMeParticipate = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<GetMyParticipateEventsResponse>> => {
+    
+    return axios.get(
+      `/api/events/me/participate`,options
+    );
+  }
+
+
+export const getGetEventsMeParticipateQueryKey = () => {
+    return ['api','events','me','participate'] as const;
+    }
+
+    
+export const getGetEventsMeParticipateQueryOptions = <TData = Awaited<ReturnType<typeof getEventsMeParticipate>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsMeParticipate>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  getGetEventsMeParticipateQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsMeParticipate>>> = ({ signal }) => getEventsMeParticipate({ signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsMeParticipate>>, TError, TData> 
+}
+
+export type GetEventsMeParticipateQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsMeParticipate>>>
+export type GetEventsMeParticipateQueryError = AxiosError<unknown>
+
+export const useGetEventsMeParticipate = <TData = Awaited<ReturnType<typeof getEventsMeParticipate>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsMeParticipate>>, TError, TData>>, axios?: AxiosRequestConfig}
+
+  ): UseQueryReturnType<TData, TError> & { queryKey: QueryKey } => {
+
+  const queryOptions = getGetEventsMeParticipateQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryReturnType<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = unref(queryOptions).queryKey as QueryKey;
+
+  return query;
+}
+
+
+
+
 export const getEventsEventID = (
     eventID: MaybeRef<string>, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<GetEventResponse>> => {

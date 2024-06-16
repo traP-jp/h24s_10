@@ -13,11 +13,6 @@ export const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "Home",
-      component: HelloWorld,
-    },
-    {
-      path: "/events",
       name: "Events",
       component: EventList,
     },
@@ -25,9 +20,9 @@ export const router = createRouter({
       path: "/events/:id",
       name: "EventDetail",
       component: Event,
-      props: true,
-    },{
-      path: "/ApplicateEvent",
+    },
+    {
+      path: "/events/:id/applicate-event",
       name: "ApplicateEvent",
       component: ApplicateEvent,
     },

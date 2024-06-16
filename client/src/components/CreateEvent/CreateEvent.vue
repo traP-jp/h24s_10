@@ -104,7 +104,7 @@ const createEvent = async () => {
 </script>
 
 <template>
-  <h1 class="text-h2 text-left">イベント作成</h1>
+  <h1 class="text-h3 text-left">イベント作成</h1>
   {{ isLoading }}
   {{ me?.data.traQID }}
   <h2 class="text-h4 text-left">タイトル</h2>
