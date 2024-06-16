@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/traPtitech/go-traq"
 )
 
 type (
@@ -45,9 +47,7 @@ func (c *Client) GetUsers(ctx context.Context) ([]User, error) {
 }
 
 func (c *Client) GetUsersMap(ctx context.Context) (UserMap, error) {
-	if ACCESS_TOKEN == "" {
-		return nil, errors.New("access token is missing")
-	}
+	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
 	resp, _, err := c.apiClient.UserApi.GetUsers(ctx).Execute()
 	if err != nil {
 		log.Printf("get user map error: %v", err)
@@ -72,6 +72,7 @@ var ErrUserNotFound = errors.New("user not found")
 // GetUser gets a user information by user ID.
 // If the user is not found, it returns [ErrUserNotFound].
 func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
+	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
 	user, res, err := c.apiClient.UserApi.GetUser(ctx, userID).Execute()
 	if err != nil {
 		return User{}, err
