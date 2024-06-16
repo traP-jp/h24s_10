@@ -50,19 +50,7 @@ const postDateOptionIDs = () => {
 
 <template>
   <div>
-    <h1 class="text-h3">{{ event?.title }}</h1>
     <div>
-      <div>
-        by {{ event?.hostID }}
-        <img
-          :src="`https://q.trap.jp/api/v3/public/icon/${event?.hostID}`"
-          :alt="`${event?.hostID}'s icon'`"
-          height="25"
-          width="25"
-        />
-      </div>
-      <div>{{ event?.description }}</div>
-
       <div v-if="!event?.isConfirmed">
         <div
           v-for="dateOption in event?.dateOptions ?? []"
