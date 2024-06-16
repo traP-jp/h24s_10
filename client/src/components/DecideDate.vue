@@ -15,8 +15,7 @@ type EventDetail = {
   isConfirmed: boolean;
   dateOptions: DateOption[];
 }
-
-const eventDetail = defineProps<{eventDetail: EventDetail}>().eventDetail
+const props = defineProps<{eventDetail: EventDetail}>()
 
 const dateID = ref()
 const applicantDateList = ref<{ traqID: string, dateOptionIDs: string[] }[]>([
@@ -27,7 +26,7 @@ const applicantsMap = ref(new Map<string, string[]>()) // dateOptionID -> applic
 // はじめに実行
 const calcDateOptionApplicants = () => {
   // applicantDateListを/events/{eventID}/applicantsで取得
-  for (const dateOption of eventDetail.dateOptions) {
+  for (const dateOption of props.eventDetail.dateOptions) {
     applicantsMap.value.set(dateOption.dateOptionID, [])
   }
   for (const applicant of applicantDateList.value) {
