@@ -64,9 +64,12 @@ const imgPath = (name: string) => {
       </div>
     </v-container>
     <v-container class="detail">
-      <div class="text-h4">開催場所</div>
-      <v-divider />
-      {{ event?.location }}
+      <div v-if="event?.location">
+        <div class="text-h4">開催場所</div>
+        <v-divider />
+        {{ event?.location }}
+        <v-divider />
+      </div>
       <div class="text-h4">概要</div>
       <v-divider />
       {{ event?.description }}

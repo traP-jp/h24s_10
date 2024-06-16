@@ -43,8 +43,11 @@ const isHost = computed<boolean>(
           width="25"
         />
       </div>
-      <h2 class="text-h4">場所</h2>
-      <div>{{ event?.location }}</div>
+      <div v-if="event?.location">
+        <h2 class="text-h4">開催場所</h2>
+        <div>{{ event?.location }}</div>
+      </div>
+      <br />
       <h2 class="text-h4">概要</h2>
       <div>{{ event?.description }}</div>
       <DecideDate v-if="isHost && !event?.isConfirmed" />
