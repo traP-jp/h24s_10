@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"slices"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
@@ -56,12 +57,17 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+	var location string
+	if req.Location != nil {
+		location = *req.Location
+	}
 
 	event := model.Event{
 		ID:          eventID,
 		Title:       req.Title,
 		HostID:      hostID,
 		Description: req.Description,
+		Location:    location,
 		IsConfirmed: false,
 	}
 	err = h.repo.CreateEvent(event)
@@ -232,9 +238,14 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 			Start: dateOption.Start,
 		})
 	}
+	var location *string
+	if event.Location != "" {
+		location = &event.Location
+	}
 	getEventsByEventIDResponse := api.GetEventResponse{
 		DateOptions: dateOptionsResponse,
 		Description: event.Description,
+		Location:    location,
 		Id:          event.ID,
 		IsConfirmed: event.IsConfirmed,
 		Title:       event.Title,
@@ -249,9 +260,9 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 	return ctx.JSON(http.StatusOK, getEventsByEventIDResponse)
 }
 
-// (PATCH /events/{eventID}/confirm)
-func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventID) error {
-	var req api.PatchEventConfirmRequest
+// (POST /events/{eventID}/confirm)
+func (h *Handler) PostEventsEventIDConfirm(ctx echo.Context, eventID api.EventID) error {
+	var req api.PostEventConfirmRequest
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -280,7 +291,48 @@ func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventI
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return ctx.NoContent(http.StatusNoContent)
+	// participantsを取得
+	participants, err := h.repo.GetParticipants(eventID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	// グループ名一覧を取得
+	groupsMap, err := h.client.GetUserGroupsMap(ctx.Request().Context())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	// グループ名が存在しないものを使う
+	groupName, err := editGroupName(event.Title, groupsMap)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	eventDescription := []rune(event.Description)
+
+	group, err := h.client.CreateUserGroup(ctx.Request().Context(), groupName, string(eventDescription[:100]), "あのにます", event.HostID, participants)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	groupMembers := make([]api.TraQUser, 0, len(group.Members))
+	for _, member := range group.Members {
+		groupMembers = append(groupMembers, api.TraQUser{
+			DisplayName: member.DisplayName,
+			Name:        member.Name,
+		})
+	}
+
+	groupResponse := api.TraQGroup{
+		Name:    &group.Name,
+		Members: &groupMembers,
+	}
+
+	response := &api.PostEventConfirmResponse{
+		Group: groupResponse,
+	}
+
+	return ctx.JSON(http.StatusOK, response)
 }
 
 func (h *Handler) makeConfirmed(eventID uuid.UUID, eventDateID uuid.UUID, event model.Event) error {
@@ -360,4 +412,22 @@ func (h *Handler) GetEventsEventIDTargets(ctx echo.Context, eventID api.EventID)
 		res[i] = target.TraQID
 	}
 	return ctx.JSON(http.StatusOK, res)
+}
+
+func editGroupName(name string, groupsMap map[string]traqclient.Group) (string, error) {
+	runeName := []rune(name)
+	if utf8.RuneCountInString(string(runeName)) > 30 {
+		runeName = runeName[:30]
+	}
+	if _, ok := groupsMap[string(runeName)]; ok {
+		return string(runeName), nil
+	} else {
+		for i := range 10 {
+			runeName[29] = rune('0' + i%10)
+			if _, ok := groupsMap[string(runeName)]; ok {
+				return string(runeName), nil
+			}
+		}
+		return "", fmt.Errorf("group name error")
+	}
 }
