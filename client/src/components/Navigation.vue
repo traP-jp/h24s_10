@@ -8,7 +8,7 @@ const router = useRouter();
 <template>
   <div>
     <v-app-bar color="primary">
-      <v-app-bar-title class="mx-6">予定決めアプリ</v-app-bar-title>
+      <v-app-bar-title class="mx-6">すっケジュール </v-app-bar-title>
       <template v-slot:append>
         <v-btn @click="router.push('/')">
           <v-icon :icon="mdiHome" />
