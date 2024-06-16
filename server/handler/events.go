@@ -214,9 +214,9 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 	return ctx.JSON(http.StatusOK, getEventsByEventIDResponse)
 }
 
-// (PATCH /events/{eventID}/confirm)
-func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventID) error {
-	var req api.PatchEventConfirmRequest
+// (POST /events/{eventID}/confirm)
+func (h *Handler) PostEventsEventIDConfirm(ctx echo.Context, eventID api.EventID) error {
+	var req api.PostEventConfirmRequest
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -231,19 +231,19 @@ func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventI
 		return echo.NewHTTPError(http.StatusForbidden, "you are not the host of this event")
 	}
 
-	// event.IsConfirmed = req.IsConfirmed
+	event.IsConfirmed = req.IsConfirmed
 
-	// if req.IsConfirmed {
-	// 	if req.EventDateOptionID == nil {
-	// 		return echo.NewHTTPError(http.StatusBadRequest, "event_date_option_id is required")
-	// 	}
-	// 	err = h.makeConfirmed(eventID, *req.EventDateOptionID, event)
-	// } else {
-	// 	err = h.makeUnconfirmed(event)
-	// }
-	// if err != nil {
-	// 	return echo.NewHTTPError(http.StatusInternalServerError, err)
-	// }
+	if req.IsConfirmed {
+		if req.EventDateOptionID == nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "event_date_option_id is required")
+		}
+		err = h.makeConfirmed(eventID, *req.EventDateOptionID, event)
+	} else {
+		err = h.makeUnconfirmed(event)
+	}
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 
 	// participantsを取得
 	participants, err := h.repo.GetParticipants(eventID)
@@ -251,12 +251,29 @@ func (h *Handler) PatchEventsEventIDConfirm(ctx echo.Context, eventID api.EventI
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	_, err = h.client.CreateUserGroup(ctx.Request().Context(), event.Title+"asdaa", event.Description, "あのにます", event.HostID, participants)
+	group, err := h.client.CreateUserGroup(ctx.Request().Context(), event.Title, event.Description, "あのにます", event.HostID, participants)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return ctx.NoContent(http.StatusNoContent)
+	groupMembers := make([]api.TraQUser, 0, len(group.Members))
+	for _, member := range group.Members {
+		groupMembers = append(groupMembers, api.TraQUser{
+			DisplayName: member.DisplayName,
+			Name:        member.Name,
+		})
+	}
+
+	groupResponse := api.TraQGroup{
+		Name:    &group.Name,
+		Members: &groupMembers,
+	}
+
+	response := &api.PostEventConfirmResponse{
+		Group: groupResponse,
+	}
+
+	return ctx.JSON(http.StatusOK, response)
 }
 
 func (h *Handler) makeConfirmed(eventID uuid.UUID, eventDateID uuid.UUID, event model.Event) error {

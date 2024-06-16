@@ -23,9 +23,28 @@ type (
 		Admins      []string          // グループ管理者のUUIDの配列
 	}
 
+	GroupDetail struct {
+		Id          string                  // グループUUID
+		Name        string                  // グループ名
+		Description string                  // グループ説明
+		Type        string                  // グループタイプ
+		Icon        string                  // グループアイコンUUID
+		Members     []UserGroupMemberDetail // グループメンバーの配列
+		CreatedAt   time.Time               // 作成日時
+		UpdatedAt   time.Time               // 更新日時
+		Admins      []string                // グループ管理者のUUIDの配列
+	}
+
 	UserGroupMember struct {
 		Id   string // ユーザーUUID
 		Role string // ユーザーの役割
+	}
+
+	UserGroupMemberDetail struct {
+		Id          string // ユーザーUUID
+		Role        string // ユーザーの役割
+		Name        string
+		DisplayName string
 	}
 )
 
@@ -60,17 +79,17 @@ func (c *Client) GetUserGroups(ctx context.Context) ([]Group, error) {
 	return GroupList, nil
 }
 
-func (c *Client) CreateUserGroup(ctx context.Context, name string, description string, groupType string, adminID string, participants []model.Participant) (Group, error) {
+func (c *Client) CreateUserGroup(ctx context.Context, name string, description string, groupType string, adminID string, participants []model.Participant) (GroupDetail, error) {
 	fmt.Println("CreateUserGroup")
 	if len(participants) == 0 || len(participants) == 1 {
 		log.Println("No participants")
-		return Group{}, nil
+		return GroupDetail{}, nil
 	}
 	fmt.Println("participants: ", participants)
 
 	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
 	postUserGroupRequest := *traq.NewPostUserGroupRequest(
-		"naasdfasdfasfaame",
+		name,
 		description,
 		groupType,
 	)
@@ -81,7 +100,7 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 	if err != nil {
 		fmt.Printf("create user group error: %v", err)
 		fmt.Printf("title: %v", resp.Name)
-		return Group{}, err
+		return GroupDetail{}, err
 	}
 
 	fmt.Println("resp: ", resp)
@@ -89,38 +108,40 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 	admin, err := c.GetUser(ctx, adminID)
 	if err != nil {
 		fmt.Printf("get user error: %v", err)
-		return Group{}, err
+		return GroupDetail{}, err
 	}
 
 	postUserGroupAdminRequest := *traq.NewPostUserGroupAdminRequest(admin.Id)
 	_, err = c.apiClient.GroupApi.AddUserGroupAdmin(ctx, resp.Id).PostUserGroupAdminRequest(postUserGroupAdminRequest).Execute()
 	if err != nil {
 		fmt.Printf("add user group admin error: %v", err)
-		return Group{}, err
+		return GroupDetail{}, err
 	}
 
 	// fmt.Println("userGroupAdmin: ", postUserGroupAdminRequest)
 
-	userGroupMembers := make([]UserGroupMember, 0, len(participants))
+	userGroupMembers := make([]UserGroupMemberDetail, 0, len(participants))
 	for _, participant := range participants {
 		user, err := c.GetUser(ctx, participant.TraQID)
 		if err != nil {
 			fmt.Printf("get user error: %v", err)
-			return Group{}, err
+			return GroupDetail{}, err
 		}
 		userGroupMember := *traq.NewUserGroupMember(user.Id, "")
 		_, err = c.apiClient.GroupApi.AddUserGroupMember(ctx, resp.Id).UserGroupMember(userGroupMember).Execute()
 		if err != nil {
 			fmt.Printf("add user group member error: %v", err)
-			return Group{}, err
+			return GroupDetail{}, err
 		}
-		userGroupMembers = append(userGroupMembers, UserGroupMember{
-			Id:   participant.TraQID,
-			Role: "",
+		userGroupMembers = append(userGroupMembers, UserGroupMemberDetail{
+			Id:          participant.TraQID,
+			Role:        "一般人",
+			Name:        user.Name,
+			DisplayName: user.DisplayName,
 		})
 		fmt.Println("userGroupMember: ", userGroupMember)
 	}
-	return Group{
+	return GroupDetail{
 		Id:          resp.Id,
 		Name:        resp.Name,
 		Description: resp.Description,
@@ -131,5 +152,4 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 		UpdatedAt:   resp.UpdatedAt,
 		Admins:      resp.Admins,
 	}, nil
-
 }
