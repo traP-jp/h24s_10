@@ -55,12 +55,17 @@ func (h *Handler) PostEvents(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+	var location string
+	if req.Location != nil {
+		location = *req.Location
+	}
 
 	event := model.Event{
 		ID:          eventID,
 		Title:       req.Title,
 		HostID:      hostID,
 		Description: req.Description,
+		Location:    location,
 		IsConfirmed: false,
 	}
 	err = h.repo.CreateEvent(event)

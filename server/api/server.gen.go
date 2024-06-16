@@ -91,6 +91,7 @@ type PostEventRequest struct {
 		Start time.Time `json:"start"`
 	} `json:"dateOptions"`
 	Description string   `json:"description"`
+	Location    *string  `json:"location,omitempty"`
 	Targets     []string `json:"targets"`
 	Title       string   `json:"title"`
 }
