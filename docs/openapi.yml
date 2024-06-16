@@ -301,6 +301,9 @@ components:
           type: string
         description:
           type: string
+        hostID:
+          type: string
+          description: traQ ID
         isConfirmed:
           type: boolean
         date:
@@ -313,6 +316,7 @@ components:
         - id
         - title
         - description
+        - hostID
         - isConfirmed
         - dateOptions
     DateTimeResponse:

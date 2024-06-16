@@ -49,6 +49,7 @@ type GetEventResponse struct {
 	Id          openapi_types.UUID `json:"id"`
 	IsConfirmed bool               `json:"isConfirmed"`
 	Title       string             `json:"title"`
+	HostID      string             `json:"hostID"`
 }
 
 // GetEventTargetsResponse defines model for GetEventTargetsResponse.

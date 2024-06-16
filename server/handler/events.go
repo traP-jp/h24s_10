@@ -238,6 +238,7 @@ func (h *Handler) GetEventsEventID(ctx echo.Context, eventID api.EventID) error 
 		Id:          event.ID,
 		IsConfirmed: event.IsConfirmed,
 		Title:       event.Title,
+		HostID:      event.HostID,
 	}
 	if event.Start.Valid && event.End.Valid {
 		getEventsByEventIDResponse.Date = &api.DateTimeResponse{
