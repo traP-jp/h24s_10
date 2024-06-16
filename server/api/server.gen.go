@@ -110,8 +110,9 @@ type PostEventResponse struct {
 
 // Applicant defines model for applicant.
 type Applicant struct {
-	DateOptionIDs *[]openapi_types.UUID `json:"dateOptionIDs,omitempty"`
-	TraqID        *string               `json:"traqID,omitempty"`
+	Comment       string               `json:"comment"`
+	DateOptionIDs []openapi_types.UUID `json:"dateOptionIDs"`
+	TraqID        string               `json:"traqID"`
 }
 
 // DateOption defines model for dateOption.
