@@ -22,21 +22,20 @@ const { mutateAsync: postApplicants } = usePostEventsEventIDApplicants();
 
 const event = computed(() => eventsAxios.value?.data);
 
-const dateOptionIDs = ref<boolean[]>([]);
+const dateOptionIDs = ref<string[]>([]);
 
 watch(event, () => {
-  dateOptionIDs.value = event.value?.dateOptions?.map((v) => false) ?? [];
+  dateOptionIDs.value = event.value?.dateOptions?.map((v) => v.id) ?? [];
 });
 
 const comment = ref("");
 const postDateOptionIDs = async () => {
+  console.log(dateOptionIDs.value);
   await postApplicants({
     eventID: id,
     data: {
       comment: comment.value,
-      dateOptionIDs: dateOptionIDs.value.flatMap((v, i) =>
-        v ? [event.value?.dateOptions?.[i]?.id ?? ""] : []
-      ),
+      dateOptionIDs: dateOptionIDs.value,
     },
   });
   router.push("/");
