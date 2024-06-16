@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useGetEventsMe } from "/@/generated/api/openapi";
 import { computed } from "vue";
 import { useRouter } from "vue-router";

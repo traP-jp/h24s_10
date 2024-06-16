@@ -17,7 +17,6 @@ import {
 } from "/@/generated/api/openapi";
 import type { TraQUser, TraQGroup } from "/@/generated/api/openapi";
 import { useRouter } from "vue-router";
-import { title } from "process";
 
 const router = useRouter();
 
@@ -105,8 +104,6 @@ const createEvent = async () => {
 
 <template>
   <h1 class="text-h3 text-left">イベント作成</h1>
-  {{ isLoading }}
-  {{ me?.data.traQID }}
   <h2 class="text-h4 text-left">タイトル</h2>
   <v-text-field v-model="eventName" label="イベント名" />
 

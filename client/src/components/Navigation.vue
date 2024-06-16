@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { mdiHome } from "@mdi/js";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 </script>
 
 <template>
@@ -7,13 +10,13 @@ import { mdiHome } from "@mdi/js";
     <v-app-bar color="primary">
       <v-app-title class="mx-6">hoge</v-app-title>
       <template v-slot:append>
-        <v-btn @click="$router.push({ name: 'Home' })">
+        <v-btn @click="router.push('/')">
           <v-icon :icon="mdiHome" />
         </v-btn>
-        <v-btn variant="text" @click="$router.push({ name: 'Events' })"
+        <v-btn variant="text" @click="router.push({ name: 'Events' })"
           >イベント一覧</v-btn
         >
-        <v-btn variant="text" @click="$router.push({ name: 'CreateEvent' })"
+        <v-btn variant="text" @click="router.push('/create-event')"
           >イベント作成</v-btn
         >
       </template>

@@ -13,6 +13,11 @@ export const router = createRouter({
   routes: [
     {
       path: "/",
+      name: "Home",
+      component: HelloWorld,
+    },
+    {
+      path: "/events",
       name: "Events",
       component: EventList,
     },
