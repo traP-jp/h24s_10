@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useGetEventsMe } from "/@/generated/api/openapi";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { mdiChevronRight } from "@mdi/js";
 
 const router = useRouter();
 
@@ -26,6 +27,11 @@ const answeredEvents = computed(
 const confirmedEvents = computed(
   () => eventsMe?.value?.data.filter((v) => v.isConfirmed) ?? []
 );
+
+const stringSlice = (str: string, length: number) => {
+  if (str.length <= length) return str;
+  return str.slice(0, Math.min(str.length, length)) + "...";
+};
 </script>
 
 <template>
@@ -39,10 +45,13 @@ const confirmedEvents = computed(
           :key="event.event_id"
           class="ma-5"
           link
-          @click="router.push(`/events/${event.event_id}/applicate-event`)"
+          @click="$router.push(`/events/${event.event_id}/applicate-event`)"
+          :append-icon="mdiChevronRight"
+          :title="event.title"
         >
-          <v-card-title>{{ event.title }}</v-card-title>
-          <v-card-text>{{ event.description }}</v-card-text>
+          <v-card-text>{{
+            stringSlice(event.description ?? "", 50)
+          }}</v-card-text>
         </v-card>
       </div>
       <div v-if="hostEvents.length > 0">
@@ -53,9 +62,12 @@ const confirmedEvents = computed(
           class="ma-5"
           link
           @click="router.push(`/events/${event.event_id}/applicate-event`)"
+          :append-icon="mdiChevronRight"
+          :title="event.title"
         >
-          <v-card-title>{{ event.title }}</v-card-title>
-          <v-card-text>{{ event.description }}</v-card-text>
+          <v-card-text>{{
+            stringSlice(event.description ?? "", 50)
+          }}</v-card-text>
         </v-card>
       </div>
       <div v-if="confirmedEvents.length > 0">
@@ -66,9 +78,12 @@ const confirmedEvents = computed(
           class="ma-5"
           link
           @click="router.push(`/events/${event.event_id}`)"
+          :append-icon="mdiChevronRight"
+          :title="event.title"
         >
-          <v-card-title>{{ event.title }}</v-card-title>
-          <v-card-text>{{ event.description }}</v-card-text>
+          <v-card-text>{{
+            stringSlice(event.description ?? "", 50)
+          }}</v-card-text>
         </v-card>
       </div>
       <div v-if="answeredEvents.length > 0">
@@ -79,9 +94,12 @@ const confirmedEvents = computed(
           class="ma-5"
           link
           @click="router.push(`/events/${event.event_id}`)"
+          :append-icon="mdiChevronRight"
+          :title="event.title"
         >
-          <v-card-title>{{ event.title }}</v-card-title>
-          <v-card-text>{{ event.description }}</v-card-text>
+          <v-card-text>{{
+            stringSlice(event.description ?? "", 50)
+          }}</v-card-text>
         </v-card>
       </div>
     </div>

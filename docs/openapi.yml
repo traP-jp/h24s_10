@@ -424,6 +424,12 @@ components:
           items:
             type: string
             format: uuid
+        comment:
+          type: string
+      required:
+        - traqID
+        - dateOptionIDs
+        - comment
     traQUser:
       type: object
       properties:
