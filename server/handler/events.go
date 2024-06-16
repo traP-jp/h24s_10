@@ -310,7 +310,12 @@ func (h *Handler) PostEventsEventIDConfirm(ctx echo.Context, eventID api.EventID
 
 	eventDescription := []rune(event.Description)
 
-	group, err := h.client.CreateUserGroup(ctx.Request().Context(), groupName, string(eventDescription[:100]), "あのにます", event.HostID, participants)
+	// eventDescriptionが100以上のときは100文字までにする
+	if utf8.RuneCountInString(string(eventDescription)) > 100 {
+		eventDescription = eventDescription[:100]
+	}
+
+	group, err := h.client.CreateUserGroup(ctx.Request().Context(), groupName, string(eventDescription), "あのにます", event.HostID, participants)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
