@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { mdiChevronRight } from "@mdi/js";
 
 interface Event {
     title: string
@@ -32,6 +33,11 @@ const participatedEvents = ref<Event[]>([
     }
 ])
 
+const stringSlice = (str: string, length: number) => {
+    if(str.length <= length) return str
+    return str.slice(0, Math.min(str.length, length)) + '...'
+}
+
 </script>
 
 <template>
@@ -40,20 +46,27 @@ const participatedEvents = ref<Event[]>([
         <div>
             <h3 class="title">参加予定</h3>
             <v-card v-for="event in participatedEvents"
-                :key="event.id" class="ma-5"
+                :key="event.id"
+                class="ma-5"
                 link
-                @click="$router.push({ name: 'EventDetail', params: { id: event.id } })">
-                <v-card-title>{{ event.title }}</v-card-title>
-                <v-card-subtitle>{{ event.date }}</v-card-subtitle>
-                <v-card-text>{{ event.description }}</v-card-text>
+                @click="$router.push({ name: 'EventDetail', params: { id: event.id } })"
+                :append-icon="mdiChevronRight"
+                :title="event.title"
+                :subtitle="event.date">
+                <v-card-text>{{ stringSlice(event.description, 50) }}</v-card-text>
             </v-card>
         </div>
         <div>
             <h3 class="title">募集中</h3>
-            <v-card v-for="event in events" :key="event.title" class="ma-5" link>
-                <v-card-title>{{ event.title }}</v-card-title>
-                <v-card-subtitle>{{ event.date }}</v-card-subtitle>
-                <v-card-text>{{ event.description }}</v-card-text>
+            <v-card v-for="event in events"
+                :key="event.title"
+                class="ma-5"
+                link
+                @click="$router.push({ name: 'ApplicateEvent'})"
+                :append-icon="mdiChevronRight"
+                :title="event.title"
+                :subtitle="event.date">
+                <v-card-text>{{ stringSlice(event.description, 50) }}</v-card-text>
             </v-card>
         </div>
     </div>
