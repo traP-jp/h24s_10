@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/traP-jp/h24s_10/api"
+	"github.com/traP-jp/h24s_10/model"
 )
 
 func (h *Handler) GetEventsEventIDCalendar(ctx echo.Context, eventID api.EventID) error {
@@ -20,19 +21,22 @@ func (h *Handler) GetEventsEventIDCalendar(ctx echo.Context, eventID api.EventID
 		return echo.NewHTTPError(http.StatusBadRequest, "Event is not confirmed")
 	}
 
-	cal := generateIcal(event.Start.Time, event.End.Time, event.Title, event.Description)
+	cal := generateIcal(event)
 
 	return ctx.Blob(http.StatusOK, "text/calendar", []byte(cal))
 }
 
-func generateIcal(start, end time.Time, title, description string) string {
+func generateIcal(e model.Event) string {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodRequest)
+
 	event := cal.AddEvent(uuid.NewString())
 	event.SetCreatedTime(time.Now())
-	event.SetStartAt(start)
-	event.SetEndAt(end)
-	event.SetSummary(title)
-	event.SetDescription(description)
+	event.SetStartAt(e.Start.Time)
+	event.SetEndAt(e.End.Time)
+	event.SetSummary(e.Title)
+	event.SetDescription(e.Description)
+	event.SetLocation(e.Location)
+
 	return cal.Serialize()
 }
