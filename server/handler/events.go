@@ -2,8 +2,8 @@ package handler
 
 import (
 	"database/sql"
-	"log"
 	"fmt"
+	"log"
 	"net/http"
 	"slices"
 
