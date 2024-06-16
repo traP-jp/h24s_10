@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/traP-jp/h24s_10/api"
@@ -251,7 +252,20 @@ func (h *Handler) PostEventsEventIDConfirm(ctx echo.Context, eventID api.EventID
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	group, err := h.client.CreateUserGroup(ctx.Request().Context(), event.Title, event.Description, "あのにます", event.HostID, participants)
+	// グループ名一覧を取得
+	groupsMap, err := h.client.GetUserGroupsMap(ctx.Request().Context())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	// グループ名が存在しないものを使う
+	groupName, err := editGroupName(event.Title, groupsMap)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	eventDescription := []rune(event.Description)
+
+	group, err := h.client.CreateUserGroup(ctx.Request().Context(), groupName, string(eventDescription[:100]), "あのにます", event.HostID, participants)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -353,4 +367,22 @@ func (h *Handler) GetEventsEventIDTargets(ctx echo.Context, eventID api.EventID)
 		res[i] = target.TraQID
 	}
 	return ctx.JSON(http.StatusOK, res)
+}
+
+func editGroupName(name string, groupsMap map[string]traqclient.Group) (string, error) {
+	runeName := []rune(name)
+	if utf8.RuneCountInString(string(runeName)) > 30 {
+		runeName = runeName[:30]
+	}
+	if _, ok := groupsMap[string(runeName)]; ok {
+		return string(runeName), nil
+	} else {
+		for i := range 10 {
+			runeName[29] = rune('0' + i%10)
+			if _, ok := groupsMap[string(runeName)]; ok {
+				return string(runeName), nil
+			}
+		}
+		return "", fmt.Errorf("group name error")
+	}
 }

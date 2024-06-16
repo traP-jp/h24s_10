@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-	"unicode/utf8"
 
 	"github.com/traP-jp/h24s_10/model"
 	"github.com/traPtitech/go-traq"
@@ -101,19 +100,8 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 	fmt.Println("participants: ", participants)
 
 	ctx = context.WithValue(ctx, traq.ContextAccessToken, ACCESS_TOKEN)
-
-	groupsMap, err := c.GetUserGroupsMap(ctx)
-	if err != nil {
-		return GroupDetail{}, err
-	}
-
-	groupName, err := editGroupName(name, groupsMap)
-	if err != nil {
-		return GroupDetail{}, err
-	}
-
 	postUserGroupRequest := *traq.NewPostUserGroupRequest(
-		groupName,
+		name,
 		description,
 		groupType,
 	)
@@ -175,22 +163,4 @@ func (c *Client) CreateUserGroup(ctx context.Context, name string, description s
 		UpdatedAt:   resp.UpdatedAt,
 		Admins:      resp.Admins,
 	}, nil
-}
-
-func editGroupName(name string, groupsMap map[string]Group) (string, error) {
-	runeName := []rune(name)
-	if utf8.RuneCountInString(string(runeName)) > 30 {
-		runeName = runeName[:30]
-	}
-	if _, ok := groupsMap[string(runeName)]; ok {
-		return string(runeName), nil
-	} else {
-		for i := range 10 {
-			runeName[29] = rune('0' + i%10)
-			if _, ok := groupsMap[string(runeName)]; ok {
-				return string(runeName), nil
-			}
-		}
-		return "", fmt.Errorf("group name error")
-	}
 }
