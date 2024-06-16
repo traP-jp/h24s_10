@@ -30,6 +30,7 @@ watch(event, () => {
 
 const comment = ref("");
 const postDateOptionIDs = async () => {
+  console.log(dateOptionIDs.value);
   console.log({
     comment: "",
     dateOptionIDs: dateOptionIDs.value.flatMap((v, i) =>

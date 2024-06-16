@@ -16,12 +16,14 @@ const invitedEvents = computed(
 );
 
 const hostEvents = computed(
-  () => eventsMe?.value?.data.filter((v) => v.isHost) ?? []
+  () => eventsMe?.value?.data.filter((v) => v.isHost && !v.isConfirmed) ?? []
 );
 
 const answeredEvents = computed(
   () =>
-    eventsMe?.value?.data.filter((v) => v.isAnswered && !v.isConfirmed) ?? []
+    eventsMe?.value?.data.filter(
+      (v) => v.isAnswered && !v.isConfirmed && !v.isHost
+    ) ?? []
 );
 
 const confirmedEvents = computed(

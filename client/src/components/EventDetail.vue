@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import ApplicateEvent from "./ApplicateEvent.vue";
 import DecideDate from "./DecideDate.vue";
+import Event from "./Event.vue";
 
 import { useRoute } from "vue-router";
 import { watch } from "vue";
@@ -24,9 +25,8 @@ watch(event, () => {
   dateOptionIDs.value = event.value?.dateOptions?.map((v) => false) ?? [];
 });
 
-const isHost = ref<boolean>(event.value?.hostID === me.value?.data.traQID);
-const isDecidingMode = computed<boolean>(
-  () => isHost.value && !event.value?.isConfirmed
+const isHost = computed<boolean>(
+  () => event.value?.hostID === me.value?.data.traQID
 );
 </script>
 
@@ -44,8 +44,9 @@ const isDecidingMode = computed<boolean>(
         />
       </div>
       <div>{{ event?.description }}</div>
-      <ApplicateEvent v-if="!isDecidingMode" />
-      <DecideDate v-if="isDecidingMode" />
+      <DecideDate v-if="isHost && !event?.isConfirmed" />
+      <ApplicateEvent v-else-if="!event?.isConfirmed" />
+      <Event v-else />
     </div>
   </div>
 </template>
