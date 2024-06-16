@@ -173,6 +173,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetEventApplicantsResponse"
+  /events/{eventID}/calendar:
+    parameters:
+      - $ref: "#/components/parameters/eventID"
+    get:
+      tags:
+        - event
+      responses:
+        200:
+          description: OK
+          content:
+            text/calendar:
+              schema:
+                type: string
   /traq/groups:
     get:
       description: get all traQ groups

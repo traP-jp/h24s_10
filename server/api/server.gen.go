@@ -191,6 +191,9 @@ type ServerInterface interface {
 	// (POST /events/{eventID}/applicants)
 	PostEventsEventIDApplicants(ctx echo.Context, eventID EventID) error
 
+	// (GET /events/{eventID}/calendar)
+	GetEventsEventIDCalendar(ctx echo.Context, eventID EventID) error
+
 	// (POST /events/{eventID}/confirm)
 	PostEventsEventIDConfirm(ctx echo.Context, eventID EventID) error
 
@@ -308,6 +311,22 @@ func (w *ServerInterfaceWrapper) PostEventsEventIDApplicants(ctx echo.Context) e
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostEventsEventIDApplicants(ctx, eventID)
+	return err
+}
+
+// GetEventsEventIDCalendar converts echo context to params.
+func (w *ServerInterfaceWrapper) GetEventsEventIDCalendar(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "eventID" -------------
+	var eventID EventID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "eventID", ctx.Param("eventID"), &eventID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter eventID: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetEventsEventIDCalendar(ctx, eventID)
 	return err
 }
 
@@ -430,6 +449,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/events/:eventID", wrapper.GetEventsEventID)
 	router.GET(baseURL+"/events/:eventID/applicants", wrapper.GetEventsEventIDApplicants)
 	router.POST(baseURL+"/events/:eventID/applicants", wrapper.PostEventsEventIDApplicants)
+	router.GET(baseURL+"/events/:eventID/calendar", wrapper.GetEventsEventIDCalendar)
 	router.POST(baseURL+"/events/:eventID/confirm", wrapper.PostEventsEventIDConfirm)
 	router.GET(baseURL+"/events/:eventID/participants", wrapper.GetEventsEventIDParticipants)
 	router.GET(baseURL+"/events/:eventID/targets", wrapper.GetEventsEventIDTargets)
