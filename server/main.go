@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/traP-jp/h24s_10/api"
 	"github.com/traP-jp/h24s_10/handler"
@@ -19,9 +20,14 @@ import (
 func main() {
 	e := echo.New()
 
+	allowOrigins := strings.Split(os.Getenv("ALLOW_ORIGINS"), ",")
+
 	// middlewares
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: allowOrigins,
+	}))
 
 	dev, err := strconv.ParseBool(os.Getenv("DEVELOPMENT"))
 	if err != nil {
